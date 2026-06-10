@@ -1,0 +1,3872 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>通个关吧</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{
+            display:flex;justify-content:center;align-items:center;
+            min-height:100vh;overflow-y:auto;
+            font-family:'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+            user-select:none;position:relative;
+            background:linear-gradient(180deg,#87CEEB 0%,#B0E0E6 30%,#98FB98 60%,#90EE90 85%,#66CDAA 100%);
+            transition:background .8s ease;
+        }
+
+        /* ============ 卡通背景 ============ */
+        .bg-layer{position:fixed;inset:0;pointer-events:none;z-index:0}
+        .bg-sun{position:absolute;width:80px;height:80px;background:radial-gradient(circle,#FFD700 30%,#FFA500 100%);border-radius:50%;top:20px;right:60px;box-shadow:0 0 50px rgba(255,215,0,.5);animation:sunPulse 4s ease-in-out infinite}
+        @keyframes sunPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+        .cloud{position:absolute;background:#fff;border-radius:50%}.cloud::before,.cloud::after{content:'';position:absolute;background:#fff;border-radius:50%}
+        .cloud-1{width:80px;height:36px;top:50px;left:8%;animation:cloudFloat 22s linear infinite}
+        .cloud-1::before{width:44px;height:44px;top:-22px;left:10px}
+        .cloud-1::after{width:52px;height:48px;top:-26px;left:30px}
+        .cloud-2{width:64px;height:30px;top:95px;left:50%;animation:cloudFloat 26s linear infinite reverse}
+        .cloud-2::before{width:36px;height:36px;top:-18px;left:8px}
+        .cloud-2::after{width:42px;height:40px;top:-22px;left:24px}
+        .cloud-3{width:70px;height:34px;top:35px;left:70%;animation:cloudFloat 20s linear infinite}
+        .cloud-3::before{width:40px;height:40px;top:-20px;left:8px}
+        .cloud-3::after{width:46px;height:42px;top:-24px;left:28px}
+        @keyframes cloudFloat{from{transform:translateX(0)}to{transform:translateX(calc(100vw + 200px))}}
+        .bg-grass{position:absolute;bottom:0;left:0;right:0;height:90px;background:linear-gradient(180deg,#7CCD7C 0%,#5BAA5B 40%,#4A8B4A 100%);border-radius:50% 60% 0 0 / 25px 25px 0 0}
+        .fence{position:absolute;bottom:80px;width:100%;height:24px;background:repeating-linear-gradient(90deg,#DEB887 0px,#DEB887 5px,transparent 5px,transparent 18px,#DEB887 18px,#DEB887 22px,transparent 22px,transparent 26px)}
+        .fence::before{content:'';position:absolute;top:-10px;left:0;right:0;height:12px;background:repeating-linear-gradient(90deg,#DEB887 0px,#DEB887 5px,transparent 5px,transparent 26px);border-radius:3px 3px 0 0}
+        .flower{position:absolute;bottom:72px;font-size:24px;animation:flowerSway 3s ease-in-out infinite}
+        .flower:nth-child(even){animation-delay:1.5s}
+        @keyframes flowerSway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+
+        /* 音乐按钮 */
+        .music-btn{position:fixed;top:12px;right:12px;z-index:999;width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.4);background:rgba(255,255,255,.2);color:#fff;font-size:1.3em;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s;backdrop-filter:blur(6px)}
+        .music-btn:hover{background:rgba(255,255,255,.35)}
+        .music-btn.off{opacity:.5}
+
+        /* 自定义音乐按钮 */
+        .custom-music-btn{position:fixed;top:12px;right:64px;z-index:999;width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.4);background:rgba(255,255,255,.2);color:#fff;font-size:1.1em;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s;backdrop-filter:blur(6px)}
+        .custom-music-btn:hover{background:rgba(255,255,255,.35)}
+        .custom-music-btn.has-custom{background:rgba(255,215,0,.3);border-color:rgba(255,215,0,.6);box-shadow:0 0 12px rgba(255,215,0,.3)}
+
+        /* 用户按钮 */
+        .user-btn{position:fixed;top:12px;right:116px;z-index:999;width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.4);background:rgba(255,255,255,.2);color:#fff;font-size:1.2em;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s;backdrop-filter:blur(6px);overflow:hidden}
+        .user-btn:hover{background:rgba(255,255,255,.35)}
+        .user-btn img{width:100%;height:100%;object-fit:cover}
+        .user-btn.logged-in{border-color:rgba(255,215,0,.6);box-shadow:0 0 12px rgba(255,215,0,.3)}
+
+        /* ============ 用户弹窗通用 ============ */
+        .modal-overlay{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;animation:fadeIn .35s ease}
+        .modal-card{width:380px;max-width:90vw;max-height:85vh;overflow-y:auto;background:linear-gradient(160deg,#FFF8DC,#FFEFD5,#FFE4B5);border-radius:18px;padding:24px 20px 20px;box-shadow:0 8px 40px rgba(0,0,0,.25);animation:bounceIn .45s ease;position:relative;border:3px solid rgba(255,255,255,.5);text-align:center}
+        .modal-card::-webkit-scrollbar{width:5px}
+        .modal-card::-webkit-scrollbar-thumb{background:rgba(139,90,43,.25);border-radius:3px}
+        .modal-card h3{font-size:1.3em;color:#5D3A00;margin-bottom:14px;letter-spacing:2px;font-weight:900}
+        .modal-card .btn-close{position:absolute;top:8px;right:12px;background:none;border:none;font-size:1.3em;cursor:pointer;color:#b8a088;transition:color .2s}
+        .modal-card .btn-close:hover{color:#5D3A00}
+
+        /* 用户登录表单 */
+        .user-form{display:flex;flex-direction:column;gap:14px;align-items:center}
+        .user-form label{font-size:.82em;font-weight:700;color:#5D3A00;align-self:flex-start;margin-bottom:-8px}
+        .user-form input[type=text]{width:100%;padding:10px 14px;border-radius:12px;border:2px solid rgba(139,90,43,.25);background:rgba(255,255,255,.6);font-size:.9em;outline:none;transition:border-color .2s;color:#4a3520}
+        .user-form input[type=text]:focus{border-color:#FF8C00}
+        .user-form .error-msg{color:#FF6B6B;font-size:.78em;font-weight:700;min-height:1em}
+        .user-form .btn-action{padding:10px 28px;font-size:.9em;font-weight:800;letter-spacing:1px;border:none;border-radius:50px;background:linear-gradient(135deg,#FF8C00,#FF6347);color:#fff;cursor:pointer;transition:all .3s;box-shadow:0 4px 16px rgba(255,99,71,.3)}
+        .user-form .btn-action:hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(255,99,71,.5)}
+        .user-form .btn-action:disabled{opacity:.5;cursor:not-allowed;transform:none}
+        .user-form .btn-secondary-action{padding:8px 20px;font-size:.8em;font-weight:700;border:2px solid rgba(139,90,43,.3);border-radius:50px;background:rgba(255,255,255,.4);color:#5D3A00;cursor:pointer;transition:all .3s}
+        .user-form .btn-secondary-action:hover{background:rgba(255,255,255,.7)}
+
+        /* 头像选择 */
+        .avatar-grid{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+        .avatar-option{width:52px;height:52px;border-radius:50%;border:3px solid transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.8em;background:rgba(255,255,255,.5);transition:all .2s}
+        .avatar-option:hover{transform:scale(1.1);border-color:rgba(255,140,0,.4)}
+        .avatar-option.selected{border-color:#FF8C00;box-shadow:0 0 12px rgba(255,140,0,.5);transform:scale(1.1)}
+        .avatar-option img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+        .avatar-upload-label{width:52px;height:52px;border-radius:50%;border:2px dashed rgba(139,90,43,.4);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.3em;background:rgba(255,255,255,.3);transition:all .2s;color:#b8a088}
+        .avatar-upload-label:hover{border-color:#FF8C00;color:#FF8C00;background:rgba(255,255,255,.5)}
+        .avatar-upload-label input{display:none}
+
+        /* 排行榜 */
+        .leaderboard-list{display:flex;flex-direction:column;gap:6px;max-height:350px;overflow-y:auto}
+        .leaderboard-list::-webkit-scrollbar{width:5px}
+        .leaderboard-list::-webkit-scrollbar-thumb{background:rgba(139,90,43,.25);border-radius:3px}
+        .lb-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.5);border:1.5px solid rgba(139,90,43,.15);transition:all .2s}
+        .lb-item.me{background:linear-gradient(135deg,rgba(255,215,0,.25),rgba(255,165,0,.18));border-color:rgba(255,215,0,.5)}
+        .lb-rank{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.85em;flex-shrink:0}
+        .lb-rank.top1{background:#FFD700;color:#5D3A00;box-shadow:0 0 10px rgba(255,215,0,.4)}
+        .lb-rank.top2{background:#C0C0C0;color:#3a3a3a;box-shadow:0 0 8px rgba(192,192,192,.4)}
+        .lb-rank.top3{background:#CD853F;color:#fff;box-shadow:0 0 8px rgba(205,133,63,.4)}
+        .lb-rank.normal{background:rgba(139,90,43,.2);color:#5D3A00}
+        .lb-avatar{width:38px;height:38px;border-radius:50%;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.5em;background:rgba(255,255,255,.5)}
+        .lb-avatar img{width:100%;height:100%;object-fit:cover}
+        .lb-info{flex:1;min-width:0;text-align:left}
+        .lb-info .lb-name{font-weight:800;color:#4a3520;font-size:.9em}
+        .lb-info .lb-detail{font-size:.72em;color:#8B7355}
+        .lb-score{font-weight:900;color:#FF8C00;font-size:.95em;flex-shrink:0}
+
+        /* ============ 通关结果全局遮罩（通关模式专用） ============ */
+        .pass-result-overlay{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.78);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;animation:fadeIn .4s ease;pointer-events:auto}
+        .pass-result-card{width:420px;max-width:92vw;max-height:90vh;overflow-y:auto;background:linear-gradient(160deg,#1a1a2e,#16213e,#0f3460);border-radius:22px;padding:30px 24px 26px;box-shadow:0 12px 60px rgba(0,0,0,.5),0 0 80px rgba(255,140,0,.15);animation:passResultBounce .5s ease;position:relative;border:2px solid rgba(255,255,255,.12);text-align:center}
+        .pass-result-card::-webkit-scrollbar{width:5px}
+        .pass-result-card::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
+        .pass-result-card .pr-result-icon{font-size:3.5em;margin-bottom:6px;animation:bounceIn .6s ease}
+        .pass-result-card .pr-result-text{font-size:1.6em;font-weight:900;margin-bottom:8px;letter-spacing:2px}
+        .pass-result-card .pr-result-text.win{color:#FFD700;text-shadow:0 0 30px rgba(255,215,0,.4)}
+        .pass-result-card .pr-result-text.lose{color:#FF6B6B;text-shadow:0 0 20px rgba(255,107,107,.3)}
+        .pass-result-card .pr-sub{color:rgba(255,255,255,.78);font-size:.9em;margin:4px 0;text-align:center;line-height:1.5}
+        .pass-result-card .pr-sub.highlight{color:#FFD700;font-weight:700}
+        .pass-result-card .pr-streak{color:#FFD700;font-size:.92em;font-weight:800;margin:6px 0;animation:passStreakPulse 1.5s ease-in-out infinite}
+        @keyframes passStreakPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+        .pass-result-card .pr-divider{width:60%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);margin:12px auto}
+        .pass-result-card .pr-btn-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:16px}
+        .pass-result-card .pr-btn{padding:12px 28px;font-size:.92em;font-weight:800;border:none;border-radius:50px;cursor:pointer;transition:all .3s;letter-spacing:1px;min-width:100px}
+        .pass-result-card .pr-btn-primary{background:linear-gradient(135deg,#FF8C00,#FF6347);color:#fff;box-shadow:0 4px 20px rgba(255,99,71,.4)}
+        .pass-result-card .pr-btn-primary:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(255,99,71,.6)}
+        .pass-result-card .pr-btn-secondary{background:rgba(255,255,255,.1);color:#fff;border:1.5px solid rgba(255,255,255,.25);backdrop-filter:blur(4px)}
+        .pass-result-card .pr-btn-secondary:hover{background:rgba(255,255,255,.2);transform:translateY(-2px);box-shadow:0 4px 16px rgba(255,255,255,.15)}
+        .pass-result-card .pr-btn-ghost{background:transparent;color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.12);font-size:.8em}
+        .pass-result-card .pr-btn-ghost:hover{color:#fff;border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.06)}
+        @keyframes passResultBounce{0%{transform:scale(.6) translateY(30px);opacity:0}60%{transform:scale(1.04) translateY(-4px);opacity:1}100%{transform:scale(1) translateY(0);opacity:1}}
+        /* 通关排名（在结果卡片中显示） */
+        .pass-rank-section{width:100%;max-width:340px;margin:4px auto;padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12)}
+        .pass-rank-title{font-size:.84em;font-weight:800;color:#FFD700;margin-bottom:8px;text-align:center;letter-spacing:1px}
+        .pass-rank-list{display:flex;flex-direction:column;gap:4px}
+        .pass-rank-item{display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:8px;background:rgba(255,255,255,.06);font-size:.8em;color:rgba(255,255,255,.82)}
+        .pass-rank-item.me{background:rgba(255,215,0,.18);border:1px solid rgba(255,215,0,.35)}
+        .pass-rank-item .pri{font-weight:900;width:24px;text-align:center;flex-shrink:0;font-size:1.1em}
+        .pass-rank-item .pra-avatar{width:26px;height:26px;border-radius:50%;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1em;background:rgba(255,255,255,.25)}
+        .pass-rank-item .pra-avatar img{width:100%;height:100%;object-fit:cover}
+        .pass-rank-item .pra-name{flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .pass-rank-item .pra-time{font-weight:800;color:#FFD700;flex-shrink:0}
+        .pass-rank-footer{font-size:.76em;color:rgba(255,255,255,.65);text-align:center;margin-top:8px}
+        .pass-rank-footer b{color:#FFD700}
+
+        /* 当前用户信息展示 */
+        .user-info-display{display:flex;align-items:center;gap:12px;padding:10px 16px;border-radius:14px;background:rgba(255,255,255,.4);margin-bottom:8px}
+        .user-info-display .uid-avatar{width:48px;height:48px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:2em;background:rgba(255,255,255,.5);flex-shrink:0;border:2px solid rgba(255,215,0,.4)}
+        .user-info-display .uid-avatar img{width:100%;height:100%;object-fit:cover}
+        .user-info-display .uid-info{text-align:left}
+        .user-info-display .uid-name{font-weight:900;color:#4a3520;font-size:1em}
+        .user-info-display .uid-score{font-size:.78em;color:#8B7355}
+
+        /* 搜索框 */
+        .search-box{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+        .search-box input{flex:1;padding:8px 12px;border-radius:12px;border:2px solid rgba(139,90,43,.25);background:rgba(255,255,255,.6);font-size:.85em;outline:none;color:#4a3520}
+        .search-box input:focus{border-color:#FF8C00}
+        .search-box button{padding:8px 14px;border-radius:12px;border:none;background:linear-gradient(135deg,#FF8C00,#FF6347);color:#fff;font-weight:700;font-size:.82em;cursor:pointer;transition:all .2s;white-space:nowrap}
+        .search-box button:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(255,99,71,.3)}
+
+        /* 排行榜Tab切换 */
+        .lb-tabs{display:flex;gap:4px;margin-bottom:12px;background:rgba(139,90,43,.08);border-radius:12px;padding:3px}
+        .lb-tab{flex:1;padding:7px 6px;border:none;border-radius:10px;background:transparent;color:#8B7355;font-size:.78em;font-weight:700;cursor:pointer;transition:all .25s;white-space:nowrap}
+        .lb-tab.active{background:linear-gradient(135deg,#FF8C00,#FF6347);color:#fff;box-shadow:0 2px 8px rgba(255,99,71,.3)}
+        .lb-tab:hover:not(.active){background:rgba(255,140,0,.15);color:#5D3A00}
+        .lb-tab-panel{display:none}
+        .lb-tab-panel.active{display:block}
+
+
+
+        /* 全局动作按钮 */
+        .btn-action{padding:10px 28px;font-size:.9em;font-weight:800;letter-spacing:1px;border:none;border-radius:50px;background:linear-gradient(135deg,#FF8C00,#FF6347);color:#fff;cursor:pointer;transition:all .3s;box-shadow:0 4px 16px rgba(255,99,71,.3)}
+        .btn-action:hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(255,99,71,.5)}
+        .btn-action:disabled{opacity:.5;cursor:not-allowed;transform:none}
+        .btn-secondary-action{padding:8px 20px;font-size:.8em;font-weight:700;border:2px solid rgba(139,90,43,.3);border-radius:50px;background:rgba(255,255,255,.4);color:#5D3A00;cursor:pointer;transition:all .3s}
+        .btn-secondary-action:hover{background:rgba(255,255,255,.6)}
+
+        /* ============ 菜单系统 ============ */
+        .screen{position:relative;z-index:10;display:none;flex-direction:column;align-items:center;gap:18px;padding:20px 0;animation:screenIn .4s ease}
+        .screen.active{display:flex}
+        @keyframes screenIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+        .title{font-size:2.2em;font-weight:900;letter-spacing:4px;color:#fff;text-shadow:2px 2px 0 #FF8C00,3px 3px 0 #FF6347,0 0 20px rgba(255,255,255,.5);animation:titleBounce 2s ease-in-out infinite}
+        @keyframes titleBounce{0%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}50%{transform:translateY(0)}70%{transform:translateY(-3px)}}
+
+        .subtitle{font-size:.95em;color:rgba(255,255,255,.75);letter-spacing:2px;text-align:center}
+
+        /* 菜单卡片 */
+        .menu-card{
+            width:280px;padding:20px 24px;border-radius:20px;
+            border:2px solid rgba(255,255,255,.25);
+            background:rgba(255,255,255,.12);backdrop-filter:blur(10px);
+            cursor:pointer;transition:all .3s;text-align:center;
+            box-shadow:0 4px 20px rgba(0,0,0,.08);
+        }
+        .menu-card:hover{
+            transform:translateY(-4px);
+            box-shadow:0 8px 30px rgba(0,0,0,.15);
+            border-color:rgba(255,255,255,.45);
+            background:rgba(255,255,255,.2);
+        }
+        .menu-card .icon{font-size:3em;display:block;margin-bottom:6px}
+        .menu-card .label{font-size:1.2em;font-weight:800;color:#fff;letter-spacing:2px}
+        .menu-card .desc{font-size:.78em;color:rgba(255,255,255,.6);margin-top:4px}
+
+        /* 返回按钮 - 左上角悬浮 */
+        .back-btn{
+            position:fixed;top:12px;left:12px;z-index:998;
+            padding:6px 14px;font-size:.76em;font-weight:700;
+            border:2px solid rgba(255,255,255,.3);border-radius:50px;
+            background:rgba(0,0,0,.25);color:#fff;cursor:pointer;
+            transition:all .3s;letter-spacing:1px;backdrop-filter:blur(6px);
+        }
+        .back-btn:hover{background:rgba(0,0,0,.4);border-color:rgba(255,255,255,.5)}
+
+        /* ============ 关卡选择网格 ============ */
+        .pass-level-grid{
+            display:grid;grid-template-columns:repeat(10,1fr);
+            gap:6px;width:100%;max-width:480px;padding:0 10px;
+            max-height:360px;overflow-y:auto;
+        }
+        .pass-level-grid::-webkit-scrollbar{width:6px}
+        .pass-level-grid::-webkit-scrollbar-thumb{background:rgba(255,255,255,.3);border-radius:3px}
+        .pass-level-item{
+            aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;
+            font-size:.7em;font-weight:700;cursor:pointer;transition:all .2s;
+            border:2px solid rgba(255,255,255,.2);color:#fff;
+            background:rgba(255,255,255,.08);min-width:32px;
+        }
+        .pass-level-item:hover{
+            transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.2);
+            border-color:rgba(255,255,255,.5);
+        }
+        .pass-level-item.cleared{
+            background:linear-gradient(135deg,rgba(255,215,0,.35),rgba(255,165,0,.3));
+            border-color:rgba(255,215,0,.6);color:#FFD700;
+            box-shadow:0 0 8px rgba(255,215,0,.2);
+        }
+        .pass-level-item.current{
+            background:linear-gradient(135deg,rgba(255,99,71,.45),rgba(255,140,0,.4));
+            border-color:rgba(255,99,71,.8);color:#fff;
+            box-shadow:0 0 14px rgba(255,99,71,.5);
+            animation:currentPulse 1.5s ease-in-out infinite;
+        }
+        @keyframes currentPulse{
+            0%,100%{box-shadow:0 0 8px rgba(255,99,71,.4)}
+            50%{box-shadow:0 0 18px rgba(255,99,71,.7)}
+        }
+        .pass-level-item.locked{
+            background:rgba(255,255,255,.04);color:rgba(255,255,255,.25);
+            border-color:rgba(255,255,255,.08);cursor:default;pointer-events:none;
+        }
+
+        /* ============ 游戏界面 ============ */
+        .game-wrapper{position:relative;z-index:10;display:none;flex-direction:column;align-items:center;gap:5px;padding:8px 0;width:100%;max-width:100vw}
+        .game-wrapper.active{display:flex;animation:screenIn .4s ease}
+
+        .info-bar{display:flex;gap:14px;align-items:center;font-size:.85em;color:#fff;background:rgba(255,255,255,.14);padding:6px 16px;border-radius:50px;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.18)}
+        .info-bar span{display:flex;align-items:center;gap:4px}
+        .info-bar .val{font-weight:800;color:#FFD700;font-size:1.08em;text-shadow:0 0 6px rgba(255,215,0,.4)}
+
+        .mode-tag{font-size:.75em;font-weight:700;color:#fff;background:rgba(255,255,255,.18);padding:4px 14px;border-radius:50px;backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.3)}
+        .theme-tag{font-size:.75em;font-weight:700;color:#fff;background:rgba(255,255,255,.18);padding:4px 14px;border-radius:50px;backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.3)}
+
+        /* 双人面板 */
+        .dual-panels{display:flex;gap:10px;align-items:flex-start}
+        .player-panel{display:flex;flex-direction:column;align-items:center;gap:5px}
+
+        .panel-label{font-size:.82em;font-weight:800;padding:3px 14px;border-radius:50px;color:#fff;letter-spacing:1px}
+        .panel-label.red{background:rgba(239,68,68,.7);border:2px solid rgba(239,68,68,.9)}
+        .panel-label.blue{background:rgba(59,130,246,.7);border:2px solid rgba(59,130,246,.9)}
+
+        .card-area{position:relative;width:min(92vw, 500px);height:min(45vh, 420px);background:rgba(255,255,255,.1);border-radius:14px;border:2px solid rgba(255,255,255,.22);backdrop-filter:blur(4px);overflow:visible;box-shadow:0 4px 20px rgba(0,0,0,.08)}
+
+        .card{position:absolute;border-radius:8px;cursor:pointer;transition:transform .14s,box-shadow .14s,filter .18s;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,.45);box-shadow:2px 3px 8px rgba(0,0,0,.1)}
+        .card:hover{transform:translateY(-4px) scale(1.08);box-shadow:4px 7px 16px rgba(0,0,0,.18)}
+        .card:active{transform:scale(.86);transition:transform .07s}
+        .card.layer-0{background:linear-gradient(160deg,#FFF8DC,#FFE4B5)}
+        .card.layer-1{background:linear-gradient(160deg,#FFFACD,#FFDEAD)}
+        .card.layer-2{background:linear-gradient(160deg,#FFF5EE,#FFDAB9)}
+        .card.layer-3{background:linear-gradient(160deg,#FFEFD5,#F5DEB3)}
+        .card.layer-4{background:linear-gradient(160deg,#FAEBD7,#DEB887)}
+        .card.layer-5{background:linear-gradient(160deg,#F5DEB3,#D2B48C)}
+        .card.layer-6{background:linear-gradient(160deg,#E8D5B7,#C4A882)}
+        .card.layer-7{background:linear-gradient(160deg,#DCC8A8,#B89B72)}
+        .card.blocked{filter:brightness(.4) saturate(.2);cursor:not-allowed;pointer-events:none;box-shadow:none}
+        .card.hint{animation:hintGlow .55s ease-in-out infinite;border-color:#FF4500!important}
+        @keyframes hintGlow{0%,100%{box-shadow:0 0 6px rgba(255,69,0,.45)}50%{box-shadow:0 0 20px rgba(255,69,0,.85)}}
+        .card.red-card{border-color:rgba(239,68,68,.5)!important;box-shadow:0 0 6px rgba(239,68,68,.2)}
+        .card.blue-card{border-color:rgba(59,130,246,.5)!important;box-shadow:0 0 6px rgba(59,130,246,.2)}
+
+        .slot-area{width:min(92vw, 500px);height:76px;background:rgba(139,90,43,.72);border-radius:12px;border:2px solid rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;gap:5px;padding:5px 7px;backdrop-filter:blur(5px);position:relative;box-shadow:inset 0 2px 6px rgba(0,0,0,.18)}
+        .slot-area::after{content:'';position:absolute;inset:3px;border-radius:10px;border:1.5px dashed rgba(255,255,255,.1);pointer-events:none}
+        .slot-area.warning{animation:warnPulse .7s ease-in-out infinite}
+        @keyframes warnPulse{0%,100%{border-color:rgba(255,255,255,.22)}50%{border-color:rgba(255,80,80,.65)}}
+        .slot-item{border-radius:7px;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#FFF8DC,#FFE4B5);border:2px solid rgba(255,255,255,.45);animation:slotIn .22s ease;flex-shrink:0}
+        @keyframes slotIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+        .slot-placeholder{border-radius:7px;border:2px dashed rgba(255,255,255,.13);flex-shrink:0}
+
+        /* 图标大小调节器 */
+        .size-control{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.14);padding:5px 14px;border-radius:50px;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:.8em;font-weight:700}
+        .size-control input[type=range]{-webkit-appearance:none;width:80px;height:6px;border-radius:3px;background:rgba(255,255,255,.3);outline:none}
+        .size-control input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#FFD700;cursor:pointer;box-shadow:0 0 6px rgba(255,215,0,.4)}
+        .size-control .size-val{min-width:32px;text-align:center;color:#FFD700}
+
+        .btn-row{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}
+        .btn{padding:6px 14px;font-size:.78em;font-weight:700;border:none;border-radius:50px;cursor:pointer;transition:all .3s;letter-spacing:.5px}
+        .btn-primary{background:linear-gradient(135deg,#FF8C00,#FF6347);color:#fff;box-shadow:0 3px 12px rgba(255,99,71,.3)}
+        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 5px 18px rgba(255,99,71,.45)}
+        .btn-secondary{background:rgba(255,255,255,.18);color:#fff;border:1.5px solid rgba(255,255,255,.3);backdrop-filter:blur(3px)}
+        .btn-secondary:hover{background:rgba(255,255,255,.28)}
+        .btn-hint{background:linear-gradient(135deg,#FFD700,#FFA500);color:#5D3A00;font-weight:800;box-shadow:0 3px 12px rgba(255,215,0,.3);animation:hintBtnPulse 1.5s ease-in-out infinite}
+        .btn-hint:hover{transform:translateY(-2px);box-shadow:0 5px 18px rgba(255,215,0,.5)}
+        @keyframes hintBtnPulse{0%,100%{box-shadow:0 3px 12px rgba(255,215,0,.3)}50%{box-shadow:0 3px 20px rgba(255,215,0,.65)}}
+
+        /* 智能提示选择弹窗 */
+        .hint-menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;justify-content:center;align-items:center;z-index:9999;animation:fadeIn .25s ease;backdrop-filter:blur(4px)}
+        .hint-menu-card{background:linear-gradient(160deg,#2a1a4a,#1a1030);border:2px solid rgba(255,215,0,.3);border-radius:18px;padding:24px 22px 18px;max-width:340px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.5);animation:popIn .3s ease}
+        @keyframes popIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+        .hint-menu-card h3{color:#FFD700;font-size:1.2em;margin:0 0 6px;letter-spacing:1px}
+        .hint-menu-card .hint-menu-sub{color:rgba(255,255,255,.55);font-size:.75em;margin-bottom:14px}
+        .hint-menu-option{display:block;width:100%;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:12px;padding:14px 16px;margin-bottom:10px;color:#fff;font-size:.88em;font-weight:700;cursor:pointer;transition:all .25s;text-align:left;display:flex;align-items:center;gap:10px}
+        .hint-menu-option:hover{background:rgba(255,215,0,.12);border-color:rgba(255,215,0,.4);transform:translateY(-1px);box-shadow:0 4px 16px rgba(255,215,0,.15)}
+        .hint-menu-option .hint-opt-icon{font-size:1.5em;flex-shrink:0}
+        .hint-menu-option .hint-opt-text{flex:1}
+        .hint-menu-option .hint-opt-desc{display:block;font-size:.72em;font-weight:400;color:rgba(255,255,255,.5);margin-top:2px}
+        .hint-menu-close{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);font-size:.78em;padding:8px 28px;border-radius:50px;cursor:pointer;margin-top:4px;transition:all .25s}
+        .hint-menu-close:hover{background:rgba(255,255,255,.2);color:#fff}
+
+        .hint-bubble{position:absolute;background:#fff;color:#333;padding:7px 12px;border-radius:12px;font-size:.74em;font-weight:600;box-shadow:0 3px 12px rgba(0,0,0,.18);z-index:100;pointer-events:none;animation:bubbleIn .35s ease;white-space:nowrap;max-width:200px}
+        .hint-bubble::after{content:'';position:absolute;bottom:-6px;left:16px;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:6px solid #fff}
+        @keyframes bubbleIn{from{transform:translateY(8px) scale(.8);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+
+        .overlay{position:absolute;inset:0;background:rgba(0,0,0,.72);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px;border-radius:14px;z-index:100;animation:fadeIn .35s ease;pointer-events:auto}
+        .overlay .result-text{font-size:1.5em;font-weight:900;animation:bounceIn .5s ease}
+        .overlay .result-text.win{color:#FFD700}
+        .overlay .result-text.lose{color:#FF6B6B}
+        .overlay .sub-info{color:rgba(255,255,255,.85);font-size:.88em;text-align:center}
+        .overlay button{padding:9px 24px;font-size:.88em;font-weight:700;border:none;border-radius:50px;background:linear-gradient(135deg,#FF8C00,#FF6347);color:#fff;cursor:pointer;transition:all .3s;margin:3px}
+        .overlay button:hover{transform:scale(1.05);box-shadow:0 0 20px rgba(255,140,0,.45)}
+        .overlay .btn-back{background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.35);color:#fff}
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        @keyframes bounceIn{0%{transform:scale(.3);opacity:0}50%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+
+        .match-effect{position:fixed;pointer-events:none;font-size:1.4em;font-weight:900;color:#FFD700;animation:floatUp .8s ease forwards;z-index:999;text-shadow:0 0 8px rgba(255,215,0,.5)}
+        @keyframes floatUp{0%{transform:translateY(0) scale(.8);opacity:1}100%{transform:translateY(-60px) scale(1.5);opacity:0}}
+
+        /* 倒计时警告 */
+        .time-warn{color:#FF6B6B!important;animation:blink .5s ease-in-out infinite}
+        @keyframes blink{50%{opacity:.3}}
+
+        /* 响应式 */
+        @media(max-width:740px){
+            .dual-panels{flex-direction:column;gap:6px}
+            .card-area{width:340px;height:290px}
+            .slot-area{width:340px;height:70px}
+            .title{font-size:1.6em}
+            .info-bar{font-size:.76em;gap:8px;padding:5px 12px}
+            .btn{padding:5px 11px;font-size:.72em}
+            .menu-card{width:250px;padding:16px 20px}
+            .pass-level-grid{grid-template-columns:repeat(8,1fr);max-width:360px}
+            .pass-level-item{font-size:.62em;min-width:26px}
+        }
+    /* ============ 游戏说明对话框 ============ */
+    .tutorial-overlay{
+        position:fixed;inset:0;z-index:9999;
+        background:rgba(0,0,0,.55);backdrop-filter:blur(4px);
+        display:flex;align-items:center;justify-content:center;
+        animation:fadeIn .35s ease;
+    }
+    .tutorial-card{
+        width:360px;max-width:90vw;max-height:80vh;overflow-y:auto;
+        background:linear-gradient(160deg,#FFF8DC,#FFEFD5,#FFE4B5);
+        border-radius:18px;padding:24px 20px 20px;
+        box-shadow:0 8px 40px rgba(0,0,0,.25);
+        animation:bounceIn .45s ease;text-align:left;
+        position:relative;border:3px solid rgba(255,255,255,.5);
+    }
+    .tutorial-card h3{
+        text-align:center;font-size:1.3em;color:#5D3A00;margin-bottom:14px;
+        letter-spacing:2px;font-weight:900;
+    }
+    .tutorial-card .rule-item{
+        display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;
+        font-size:.88em;color:#4a3520;line-height:1.55;
+    }
+    .tutorial-card .rule-icon{
+        flex-shrink:0;font-size:1.4em;width:28px;text-align:center;
+    }
+    .tutorial-card .btn-start{
+        display:block;margin:18px auto 0;padding:10px 32px;font-size:.92em;
+        font-weight:800;letter-spacing:1px;border:none;border-radius:50px;
+        background:linear-gradient(135deg,#FF8C00,#FF6347);color:#fff;
+        cursor:pointer;transition:all .3s;
+        box-shadow:0 4px 16px rgba(255,99,71,.3);
+    }
+    .tutorial-card .btn-start:hover{
+        transform:translateY(-2px);box-shadow:0 6px 22px rgba(255,99,71,.5);
+    }
+    .tutorial-card .btn-close{
+        position:absolute;top:8px;right:12px;background:none;border:none;
+        font-size:1.3em;cursor:pointer;color:#b8a088;transition:color .2s;
+    }
+    .tutorial-card .btn-close:hover{color:#5D3A00;}
+
+    /* ============ 游玩记录列表 ============ */
+    .history-list{
+        width:100%;max-width:520px;padding:0 10px;
+        max-height:360px;overflow-y:auto;
+        display:flex;flex-direction:column;gap:6px;
+    }
+    .history-list::-webkit-scrollbar{width:6px}
+    .history-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.3);border-radius:3px}
+    .history-item{
+        display:flex;align-items:center;gap:10px;
+        padding:8px 14px;border-radius:12px;
+        background:rgba(255,255,255,.12);backdrop-filter:blur(6px);
+        border:1.5px solid rgba(255,255,255,.18);
+        transition:all .2s;font-size:.8em;color:#fff;
+    }
+    .history-item:hover{background:rgba(255,255,255,.2);transform:translateX(3px)}
+    .history-item .h-icon{font-size:1.5em;flex-shrink:0;width:36px;text-align:center}
+    .history-item .h-info{flex:1;min-width:0}
+    .history-item .h-info .h-mode{font-weight:700;font-size:.95em;margin-bottom:2px}
+    .history-item .h-info .h-detail{color:rgba(255,255,255,.6);font-size:.82em}
+    .history-item .h-result{flex-shrink:0;text-align:right}
+    .history-item .h-result .h-outcome{font-weight:900;font-size:.95em}
+    .history-item .h-result .h-outcome.win{color:#FFD700}
+    .history-item .h-result .h-outcome.lose{color:#FF6B6B}
+    .history-item .h-result .h-time{color:rgba(255,255,255,.55);font-size:.78em}
+    .history-empty{
+        text-align:center;color:rgba(255,255,255,.4);padding:30px;
+        font-size:.9em;letter-spacing:1px;
+    }
+    </style>
+</head>
+<body>
+
+<!-- 卡通背景（JS动态生成，根据主题切换） -->
+<div class="bg-layer" id="bgLayer"></div>
+
+<!-- ========== 游戏说明对话框 ========== -->
+<div class="tutorial-overlay" id="tutorialOverlay">
+    <div class="tutorial-card">
+        <button class="btn-close" onclick="closeTutorial()" title="关闭">✕</button>
+        <h3>🐑 游戏玩法说明</h3>
+        <div class="rule-item">
+            <span class="rule-icon">🎯</span>
+            <span><b>目标：</b>点击卡片将其放入下方槽位，凑齐<b>3张相同图案</b>的卡片即可消除得分。</span>
+        </div>
+        <div class="rule-item">
+            <span class="rule-icon">🚫</span>
+            <span><b>层级规则：</b>卡片分为多个层级堆叠，<b>未被其他卡片遮挡</b>的卡片即可点击。被上层覆盖的卡片需要等上层消除、完全露出后方可点击。</span>
+        </div>
+        <div class="rule-item">
+            <span class="rule-icon">📦</span>
+            <span><b>槽位限制：</b>槽位最多存放<b>7张</b>卡片，满格则游戏失败，请合理规划顺序。</span>
+        </div>
+        <div class="rule-item">
+            <span class="rule-icon">⭐</span>
+            <span><b>积分系统：</b>简单模式+1分、普通模式+1分、困难模式+3分；<b>通关模式</b>每关+2分，连续3关及以上胜利额外+1分/关，总分显示在每个界面上方。</span>
+        </div>
+        <div class="rule-item">
+            <span class="rule-icon">🏰</span>
+            <span><b>通关模式：</b>共1000关逐级挑战，连胜越多奖励越多！失败一次连胜计数清零，需重新积累连胜方可再获奖励。</span>
+        </div>
+        <div class="rule-item">
+            <span class="rule-icon">🔧</span>
+            <span><b>辅助道具：</b>可使用<b>撤回（5次）</b>撤销上一步、<b>洗牌（5次）</b>重新排列剩余卡片、<b>智能提示</b>根据卡槽内已有图标推荐最优操作。</span>
+        </div>
+        <div class="rule-item">
+            <span class="rule-icon">💡</span>
+            <span><b>提示规则：</b>优先提示卡槽内<b>数量最多</b>的相同图标，其次是<b>第一位置</b>的图标，帮助快速凑齐三消。</span>
+        </div>
+    <div class="rule-item">
+        <span class="rule-icon">⏱</span>
+        <span><b>模式选择：</b>可选不限时/限时模式、简单/普通/困难难度，还有双人对战和通关模式等你挑战！</span>
+    </div>
+    <div class="rule-item">
+        <span class="rule-icon">🎨</span>
+        <span><b>随机主题：</b>每次开局随机选择6种主题之一（动物、水果、美食、海底、太空、运动），每种主题有独特的图案和背景风格。</span>
+    </div>
+    <div class="rule-item">
+        <span class="rule-icon">💡</span>
+        <span><b>智能提示：</b>若<b>30秒内无任何操作</b>，系统会自动弹出最优提示，帮你快速找到可消除的卡片。</span>
+    </div>
+<div class="rule-item">
+            <span class="rule-icon">🎵</span>
+            <span><b>背景音乐：</b>点击右上角🔊可开关音乐，🎵按钮可上传本地音乐。</span>
+        </div>
+        <div class="rule-item">
+            <span class="rule-icon">🔍</span>
+            <span><b>图标大小：</b>游戏界面下方有滑块可实时调节图标大小，适应不同屏幕和偏好。</span>
+        </div>
+        <div class="rule-item">
+            <span class="rule-icon">👤</span>
+            <span><b>用户系统：</b>右上角可登录/注册，设置头像与昵称，积分自动关联；排行榜展示所有用户总分排名，未登录也可查看。</span>
+        </div>
+        <button class="btn-start" onclick="closeTutorial()">我知道了，开始游戏！</button>
+    </div>
+</div>
+
+<!-- 音乐开关 -->
+<button class="music-btn" id="musicBtn" onclick="toggleMusic()" title="音乐开关">🔊</button>
+
+<!-- 用户按钮 -->
+<button class="user-btn" id="userBtn" onclick="openUserModal()" title="用户中心">👤</button>
+
+<!-- 自定义音乐上传 -->
+<button class="custom-music-btn" id="customMusicBtn" onclick="document.getElementById('musicFileInput').click()" title="上传本地音乐">🎵</button>
+<input type="file" id="musicFileInput" accept="audio/*" style="display:none" onchange="handleMusicFile(this)">
+
+<!-- ========== 用户登录/注册弹窗 ========== -->
+<div class="modal-overlay" id="userModal" style="display:none">
+    <div class="modal-card">
+        <button class="btn-close" onclick="closeUserModal()">✕</button>
+        <div id="userModalContent"></div>
+    </div>
+</div>
+
+<!-- ========== 排行榜弹窗 ========== -->
+<div class="modal-overlay" id="leaderboardModal" style="display:none">
+    <div class="modal-card" style="max-width:420px;">
+        <button class="btn-close" onclick="closeLeaderboardModal()">✕</button>
+        <!-- Tab切换 -->
+        <div class="lb-tabs">
+            <button class="lb-tab active" onclick="switchLBTab('total')">🏆 总分排名</button>
+            <button class="lb-tab" onclick="switchLBTab('level')">⏱ 关卡排名</button>
+        </div>
+        <!-- Tab: 总分排名 -->
+        <div class="lb-tab-panel active" id="lbPanelTotal">
+            <div class="search-box">
+                <input type="text" id="lbSearchInput" placeholder="搜索用户昵称..." oninput="renderLeaderboard()">
+                <button onclick="renderLeaderboard()">🔍 搜索</button>
+            </div>
+            <div class="leaderboard-list" id="leaderboardList"></div>
+        </div>
+        <!-- Tab: 关卡排名 -->
+        <div class="lb-tab-panel" id="lbPanelLevel">
+            <div class="search-box">
+                <input type="number" id="lbLevelInput" placeholder="输入关卡号(1-1000)" min="1" max="1000" style="width:60%;">
+                <button onclick="renderPassLevelRankingInLB()">🔍 查询</button>
+            </div>
+            <div class="leaderboard-list" id="lbLevelRankingList" style="max-height:250px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 菜单1：选择模式 ========== -->
+<div class="screen active" id="screenMain">
+    <div class="title">通个关吧</div>
+    <div class="subtitle" style="font-size:1em;color:#FFD700;font-weight:700;">⭐ 总分：<span class="pts-display">0</span></div>
+    <div class="menu-card" onclick="goToScreen('screenTime','solo')">
+        <span class="icon">👤</span>
+        <span class="label">单人模式</span>
+        <span class="desc">独自挑战，享受消除乐趣</span>
+    </div>
+    <div class="menu-card" onclick="goToScreen('screenTime','dual')">
+        <span class="icon">👥</span>
+        <span class="label">双人对战</span>
+        <span class="desc">同屏红蓝双方，比拼消除速度</span>
+    </div>
+    <div class="menu-card" onclick="goToScreen('screenTime','pass')">
+        <span class="icon">🏰</span>
+        <span class="label">通关模式</span>
+        <span class="desc">逐关挑战，层层升级</span>
+    </div>
+    <div class="menu-card" onclick="showHistory()">
+        <span class="icon">📋</span>
+        <span class="label">游玩记录</span>
+        <span class="desc">查看历史战绩与统计</span>
+    </div>
+</div>
+
+<!-- ========== 菜单2：选择限时或不限时 ========== -->
+<div class="screen" id="screenTime">
+    <div class="title" id="timeTitle">选择时间模式</div>
+    <div class="subtitle" id="timeSub"></div>
+    <div class="subtitle" style="font-size:.85em;color:#FFD700;">⭐ 总分：<span class="pts-display">0</span></div>
+    <div class="menu-card" onclick="selectTimeMode('free')">
+        <span class="icon">⏳</span>
+        <span class="label">不限时模式</span>
+        <span class="desc">慢慢思考，轻松游玩</span>
+    </div>
+    <div class="menu-card" onclick="selectTimeMode('timed')">
+        <span class="icon">⏱</span>
+        <span class="label">限时模式</span>
+        <span class="desc">紧张刺激，争分夺秒</span>
+    </div>
+    <button class="back-btn" onclick="goToScreen('screenMain')">← 返回</button>
+</div>
+
+<!-- ========== 菜单3：选择难度 ========== -->
+<div class="screen" id="screenDiff">
+    <div class="title" id="diffTitle">选择难度</div>
+    <div class="subtitle" id="diffSub"></div>
+    <div class="subtitle" style="font-size:.85em;color:#FFD700;">⭐ 总分：<span class="pts-display">0</span></div>
+    <div class="menu-card" onclick="selectDifficulty('easy')">
+        <span class="icon">🟢</span>
+        <span class="label">简单模式</span>
+        <span class="desc">3层 · 7种图案 · 63张卡</span>
+    </div>
+    <div class="menu-card" onclick="selectDifficulty('normal')">
+        <span class="icon">🟡</span>
+        <span class="label">普通模式</span>
+        <span class="desc">4层 · 9种图案 · 81张卡</span>
+    </div>
+    <div class="menu-card" onclick="selectDifficulty('hard')">
+        <span class="icon">🔴</span>
+        <span class="label">困难模式</span>
+        <span class="desc">8层 · 11种图案 · 165张卡</span>
+    </div>
+    <button class="back-btn" onclick="goToScreen('screenTime')">← 返回</button>
+</div>
+
+<!-- ========== 菜单4：通关模式关卡选择 ========== -->
+<div class="screen" id="screenPassLevels">
+    <div class="title" style="font-size:1.5em">🏰 通关模式 · 关卡选择</div>
+    <div class="subtitle" id="passLevelSub">已通关：0 / 1000</div>
+    <div class="subtitle" id="passPointsDisplay" style="font-size:.85em;color:#FFD700;">🏆 通关积分：0</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:4px">
+        <button class="btn btn-secondary" style="font-size:.7em;padding:3px 10px" onclick="passLevelGoToPage('first')">⏮ 首页</button>
+        <button class="btn btn-secondary" style="font-size:.7em;padding:3px 10px" onclick="passLevelGoToPage('prev')">◀ 上一页</button>
+        <span id="passPageInfo" style="color:#fff;font-size:.78em;line-height:2">第1页</span>
+        <button class="btn btn-secondary" style="font-size:.7em;padding:3px 10px" onclick="passLevelGoToPage('next')">下一页 ▶</button>
+        <button class="btn btn-secondary" style="font-size:.7em;padding:3px 10px" onclick="passLevelGoToPage('last')">末页 ⏭</button>
+    </div>
+    <div class="pass-level-grid" id="passLevelGrid"></div>
+    <button class="back-btn" style="margin-top:10px" onclick="goToScreen('screenMain')">← 返回主菜单</button>
+</div>
+
+<!-- ========== 游玩记录界面 ========== -->
+<div class="screen" id="screenHistory">
+    <div class="title" style="font-size:1.5em">📋 游玩记录</div>
+    <div class="subtitle" id="historySub"></div>
+    <div class="subtitle" style="font-size:.85em;color:#FFD700;">⭐ 总分：<span class="pts-display">0</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:6px">
+        <button class="btn btn-secondary" style="font-size:.72em;padding:4px 12px" onclick="filterHistory('all')">📋 全部</button>
+        <button class="btn btn-secondary" style="font-size:.72em;padding:4px 12px" onclick="filterHistory('solo')">👤 单人</button>
+        <button class="btn btn-secondary" style="font-size:.72em;padding:4px 12px" onclick="filterHistory('dual')">👥 双人</button>
+        <button class="btn btn-secondary" style="font-size:.72em;padding:4px 12px" onclick="filterHistory('pass')">🏰 通关</button>
+        <button class="btn btn-secondary" style="font-size:.72em;padding:4px 12px;background:rgba(255,80,80,.25);border-color:rgba(255,80,80,.4)" onclick="clearHistory()">🗑 清空记录</button>
+    </div>
+    <div class="history-list" id="historyList"></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:4px">
+        <span id="historyPageInfo" style="color:#fff;font-size:.78em;line-height:2">第1页</span>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:2px">
+        <button class="btn btn-secondary" style="font-size:.7em;padding:3px 10px" onclick="historyGoToPage('first')">⏮ 首页</button>
+        <button class="btn btn-secondary" style="font-size:.7em;padding:3px 10px" onclick="historyGoToPage('prev')">◀ 上一页</button>
+        <button class="btn btn-secondary" style="font-size:.7em;padding:3px 10px" onclick="historyGoToPage('next')">下一页 ▶</button>
+        <button class="btn btn-secondary" style="font-size:.7em;padding:3px 10px" onclick="historyGoToPage('last')">末页 ⏭</button>
+    </div>
+    <button class="back-btn" style="margin-top:12px" onclick="goToScreen('screenMain')">← 返回主菜单</button>
+</div>
+
+<!-- ========== 通关结果遮罩（通关模式专用，全局覆盖） ========== -->
+<div class="pass-result-overlay" id="passResultOverlay" style="display:none;">
+    <div class="pass-result-card" id="passResultCard"></div>
+</div>
+
+<!-- ========== 游戏界面 ========== -->
+<div class="game-wrapper" id="gameWrapper">
+    <button class="back-btn" onclick="backToMenu()">← 返回</button>
+    <div class="title" style="font-size:1.5em">通个关吧</div>
+    <div class="mode-tag" id="modeTag">模式</div>
+    <div class="subtitle" style="font-size:.78em;color:#FFD700;margin-top:-8px;">⭐ 总分：<span class="pts-display">0</span></div>
+
+    <!-- 双人面板容器 -->
+    <div class="dual-panels" id="dualPanels"></div>
+
+    <!-- 单人面板 -->
+    <div id="soloPanel">
+        <div class="theme-tag" id="themeTag">🎯 主题</div>
+        <div class="info-bar">
+            <span>🏆 <span class="val" id="scoreDisplay">0</span></span>
+            <span>📦 <span class="val" id="remainDisplay">0</span></span>
+            <span>⏱ <span class="val" id="timeDisplay">0s</span></span>
+        </div>
+        <div class="card-area" id="cardArea"></div>
+        <div class="slot-area" id="slotArea"></div>
+        <div class="btn-row" style="margin-top:4px">
+            <button class="btn btn-secondary" onclick="undoLast('p0')">↩ 撤回(5)</button>
+            <button class="btn btn-secondary" id="shuffleBtn-p0" onclick="shuffleCards('p0')">🔀 洗牌(5)</button>
+            <button class="btn btn-hint" onclick="showHintMenu('p0')">💡 智能提示</button>
+            <button class="btn btn-primary" onclick="restartCurrentGame()">🔄 重新开始</button>
+        </div>
+        <div class="size-control" style="margin-top:4px" id="sizeControl-p0">
+            <span>🔍 图标大小</span>
+            <input type="range" min="30" max="72" value="52" oninput="changeIconSize(this.value, 'p0')">
+            <span class="size-val" id="sizeVal-p0">52px</span>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 智能提示选择弹窗 ========== -->
+<div class="hint-menu-overlay" id="hintMenuOverlay" style="display:none;" onclick="closeHintMenu(event)">
+    <div class="hint-menu-card" onclick="event.stopPropagation()">
+        <h3>💡 智能提示</h3>
+        <p class="hint-menu-sub">请选择你想要的提示方式</p>
+        <button class="hint-menu-option" id="hintOptFlash" onclick="chooseHintOption('flash')">
+            <span class="hint-opt-icon">✨</span>
+            <span class="hint-opt-text">卡牌闪烁提示<span class="hint-opt-desc">高亮推荐消除的卡片，助你快速决策</span></span>
+        </button>
+        <button class="hint-menu-option" id="hintOptZoom" onclick="chooseHintOption('zoom')">
+            <span class="hint-opt-icon">🔍</span>
+            <span class="hint-opt-text">尝试缩小图标<span class="hint-opt-desc">缩小图标会有不一样的哦~</span></span>
+        </button>
+        <button class="hint-menu-close" onclick="closeHintMenu()">取消</button>
+    </div>
+</div>
+
+<script>
+// ============ 游戏说明对话框 ============
+function closeTutorial() {
+    const overlay = document.getElementById('tutorialOverlay');
+    if (overlay) {
+        overlay.style.animation = 'fadeOut .25s ease forwards';
+        setTimeout(() => overlay.remove(), 250);
+    }
+}
+// 点击遮罩层也能关闭
+document.getElementById('tutorialOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeTutorial();
+});
+
+// 添加fadeOut动画
+(function addFadeOut() {
+    if (document.getElementById('fadeOutKeyframe')) return;
+    const style = document.createElement('style');
+    style.id = 'fadeOutKeyframe';
+    style.textContent = '@keyframes fadeOut{from{opacity:1}to{opacity:0}}';
+    document.head.appendChild(style);
+})();
+
+// ============ 用户系统 ============
+const DEFAULT_AVATARS = ['🐑', '🐮', '🐯', '🐰', '🐱', '🐶', '🐼', '🐨', '🦊', '🐸', '🦁', '🐵'];
+let currentUser = null;  // { nickname, avatar, avatarType }  avatarType: 'emoji'|'image'
+
+// 加载当前用户信息
+function loadCurrentUser() {
+    try {
+        const raw = localStorage.getItem('sheep_current_user');
+        if (raw) { currentUser = JSON.parse(raw); return currentUser; }
+    } catch(e) {}
+    currentUser = null;
+    return null;
+}
+
+// 保存当前用户
+function saveCurrentUser() {
+    if (currentUser) {
+        localStorage.setItem('sheep_current_user', JSON.stringify(currentUser));
+    } else {
+        localStorage.removeItem('sheep_current_user');
+    }
+    updateUserButton();
+}
+
+// 获取所有注册用户列表
+function getAllUsers() {
+    try {
+        const raw = localStorage.getItem('sheep_all_users');
+        if (raw) return JSON.parse(raw);
+    } catch(e) {}
+    return [];
+}
+
+// 保存所有用户列表
+function saveAllUsers(users) {
+    localStorage.setItem('sheep_all_users', JSON.stringify(users));
+}
+
+// 检查昵称是否被占用（排除当前用户自己）
+function isNicknameTaken(nickname) {
+    const trimmed = nickname.trim();
+    const users = getAllUsers();
+    return users.some(u => u.nickname === trimmed && (!currentUser || u.nickname !== currentUser.nickname));
+}
+
+// 更新右上角用户按钮
+function updateUserButton() {
+    const btn = document.getElementById('userBtn');
+    loadCurrentUser();
+    btn.innerHTML = '';
+    if (currentUser) {
+        btn.classList.add('logged-in');
+        btn.title = currentUser.nickname + ' - 用户中心';
+        if (currentUser.avatarType === 'image' && currentUser.avatar) {
+            const img = document.createElement('img');
+            img.src = currentUser.avatar;
+            btn.appendChild(img);
+        } else {
+            btn.textContent = currentUser.avatar || '👤';
+        }
+    } else {
+        btn.classList.remove('logged-in');
+        btn.textContent = '👤';
+        btn.title = '登录/注册';
+    }
+}
+
+// 获取用户头像HTML
+function getUserAvatarHTML(user) {
+    if (user.avatarType === 'image' && user.avatar) {
+        return '<img src="' + user.avatar + '" style="width:100%;height:100%;object-fit:cover">';
+    }
+    return user.avatar || '👤';
+}
+
+// 渲染头像选择器
+function renderAvatarSelector(selectedAvatar, selectedType) {
+    let html = '<div class="avatar-grid">';
+    // 内置emoji头像
+    DEFAULT_AVATARS.forEach(emoji => {
+        const sel = (selectedType === 'emoji' && selectedAvatar === emoji) ? ' selected' : '';
+        html += `<div class="avatar-option${sel}" onclick="selectAvatar('${emoji}','emoji')">${emoji}</div>`;
+    });
+    // 自定义上传头像
+    if (selectedType === 'image' && selectedAvatar) {
+        html += `<div class="avatar-option selected"><img src="${selectedAvatar}"></div>`;
+        html += `<label class="avatar-upload-label" title="更换头像">📷<input type="file" accept="image/*" onchange="handleAvatarUpload(this)"></label>`;
+    } else {
+        html += `<label class="avatar-upload-label" title="上传自定义头像">📷<input type="file" accept="image/*" onchange="handleAvatarUpload(this)"></label>`;
+    }
+    html += '</div>';
+    return html;
+}
+
+let tempAvatar = null;      // { value, type }
+let tempAvatarData = null;  // base64 data for image type
+
+function selectAvatar(value, type) {
+    tempAvatar = { value, type };
+    tempAvatarData = value;
+    // 重新渲染头像选择器
+    const grid = document.querySelector('#userModal .avatar-grid');
+    if (grid) {
+        grid.outerHTML = renderAvatarSelector(value, type);
+    }
+}
+
+function handleAvatarUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { alert('请选择图片文件'); return; }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const dataUrl = e.target.result;
+        tempAvatar = { value: dataUrl, type: 'image' };
+        tempAvatarData = dataUrl;
+        const grid = document.querySelector('#userModal .avatar-grid');
+        if (grid) {
+            grid.outerHTML = renderAvatarSelector(dataUrl, 'image');
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+// 打开用户弹窗
+function openUserModal() {
+    loadCurrentUser();
+    const modal = document.getElementById('userModal');
+    const content = document.getElementById('userModalContent');
+    
+    if (currentUser) {
+        // 已登录：显示用户信息和操作选项
+        tempAvatar = { value: currentUser.avatar, type: currentUser.avatarType || 'emoji' };
+        tempAvatarData = currentUser.avatar;
+        renderLoggedInView(content);
+    } else {
+        // 未登录：显示登录/注册界面
+        tempAvatar = null;
+        tempAvatarData = null;
+        renderLoginView(content);
+    }
+    modal.style.display = 'flex';
+}
+
+function renderLoginView(content) {
+    content.innerHTML = `
+        <h3>👤 登录 / 注册</h3>
+        <div class="user-form">
+            <label>选择头像</label>
+            ${renderAvatarSelector(null, null)}
+            <label>昵称</label>
+            <input type="text" id="nicknameInput" placeholder="请输入昵称（2-8个字）" maxlength="8" oninput="onNicknameInput()">
+            <div class="error-msg" id="nicknameError"></div>
+            <button class="btn-action" id="loginBtn" onclick="doLogin()" disabled>登录 / 注册</button>
+            <div style="font-size:.72em;color:#8B7355;margin-top:4px">昵称不可重复，请输入一个独一无二的昵称</div>
+            <button class="btn-secondary-action" style="margin-top:4px" onclick="closeUserModal();openLeaderboardModal()">🏆 查看排行榜</button>
+            <div style="margin-top:12px;width:100%">
+                <div class="search-box">
+                    <input type="text" id="userSearchInput" placeholder="搜索已有用户..." oninput="searchUsers()">
+                </div>
+                <div id="userSearchResults" style="max-height:150px;overflow-y:auto"></div>
+            </div>
+        </div>
+    `;
+}
+
+function renderLoggedInView(content) {
+    const avatarHTML = getUserAvatarHTML(currentUser);
+    content.innerHTML = `
+        <h3>👤 用户中心</h3>
+        <div class="user-info-display">
+            <div class="uid-avatar">${avatarHTML}</div>
+            <div class="uid-info">
+                <div class="uid-name">${currentUser.nickname}</div>
+                <div class="uid-score">⭐ 总分：${totalPoints}</div>
+            </div>
+        </div>
+        <div class="user-form" style="margin-top:12px">
+            <button class="btn-action" onclick="openLeaderboardModal()">🏆 查看排行榜</button>
+            <button class="btn-secondary-action" onclick="showEditProfile()">✏ 修改头像/昵称</button>
+            <button class="btn-secondary-action" style="color:#FF6B6B;border-color:rgba(255,107,107,.3)" onclick="doLogout()">🚪 退出登录</button>
+        </div>
+    `;
+}
+
+function showEditProfile() {
+    const content = document.getElementById('userModalContent');
+    tempAvatar = { value: currentUser.avatar, type: currentUser.avatarType || 'emoji' };
+    tempAvatarData = currentUser.avatar;
+    content.innerHTML = `
+        <h3>✏ 修改资料</h3>
+        <div class="user-form">
+            <label>选择头像</label>
+            ${renderAvatarSelector(currentUser.avatar, currentUser.avatarType || 'emoji')}
+            <label>昵称</label>
+            <input type="text" id="nicknameInput" placeholder="请输入新昵称" maxlength="8" value="${currentUser.nickname}" oninput="onNicknameInput()">
+            <div class="error-msg" id="nicknameError"></div>
+            <button class="btn-action" id="loginBtn" onclick="doUpdateProfile()">保存修改</button>
+            <button class="btn-secondary-action" onclick="openUserModal()">取消</button>
+        </div>
+    `;
+}
+
+function onNicknameInput() {
+    const input = document.getElementById('nicknameInput');
+    const error = document.getElementById('nicknameError');
+    const btn = document.getElementById('loginBtn');
+    const val = input.value.trim();
+    
+    if (!val) {
+        error.textContent = '';
+        btn.disabled = true;
+        return;
+    }
+    if (val.length < 2) {
+        error.textContent = '昵称至少需要2个字';
+        btn.disabled = true;
+        return;
+    }
+    if (!tempAvatar) {
+        error.textContent = '请先选择头像';
+        btn.disabled = true;
+        return;
+    }
+    if (isNicknameTaken(val)) {
+        error.textContent = '该昵称已被使用，请换一个';
+        btn.disabled = true;
+        return;
+    }
+    error.textContent = '';
+    btn.disabled = false;
+}
+
+function doLogin() {
+    const input = document.getElementById('nicknameInput');
+    const nickname = input.value.trim();
+    if (!nickname || nickname.length < 2) return;
+    if (!tempAvatar) return;
+    if (isNicknameTaken(nickname)) {
+        document.getElementById('nicknameError').textContent = '该昵称已被使用，请换一个';
+        return;
+    }
+    
+    const users = getAllUsers();
+    // 新注册（昵称唯一，不存在重复）
+    const newUser = {
+        nickname: nickname,
+        avatar: tempAvatar.value,
+        avatarType: tempAvatar.type,
+        createdAt: Date.now()
+    };
+    users.push(newUser);
+    saveAllUsers(users);
+    currentUser = newUser;
+    saveCurrentUser();
+    closeUserModal();
+}
+
+function doUpdateProfile() {
+    const input = document.getElementById('nicknameInput');
+    const nickname = input.value.trim();
+    if (!nickname || nickname.length < 2) return;
+    if (!tempAvatar) return;
+    if (isNicknameTaken(nickname)) {
+        document.getElementById('nicknameError').textContent = '该昵称已被使用，请换一个';
+        return;
+    }
+    
+    const users = getAllUsers();
+    const idx = users.findIndex(u => u.nickname === currentUser.nickname);
+    if (idx >= 0) {
+        users[idx].nickname = nickname;
+        users[idx].avatar = tempAvatar.value;
+        users[idx].avatarType = tempAvatar.type;
+        saveAllUsers(users);
+    }
+    currentUser.nickname = nickname;
+    currentUser.avatar = tempAvatar.value;
+    currentUser.avatarType = tempAvatar.type;
+    saveCurrentUser();
+    closeUserModal();
+}
+
+function doLogout() {
+    currentUser = null;
+    localStorage.removeItem('sheep_current_user');
+    updateUserButton();
+    closeUserModal();
+}
+
+function closeUserModal() {
+    const modal = document.getElementById('userModal');
+    modal.style.display = 'none';
+}
+
+// 点击遮罩关闭
+document.getElementById('userModal').addEventListener('click', function(e) {
+    if (e.target === this) closeUserModal();
+});
+
+// ============ 排行榜系统 ============
+function openLeaderboardModal() {
+    document.getElementById('leaderboardModal').style.display = 'flex';
+    const searchInput = document.getElementById('lbSearchInput');
+    if (searchInput) searchInput.value = '';
+    renderLeaderboard();
+}
+
+function renderLeaderboard() {
+    const list = document.getElementById('leaderboardList');
+    const searchInput = document.getElementById('lbSearchInput');
+    const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    
+    const users = getAllUsers();
+    let ranked = users.map(u => {
+        const userPoints = parseInt(localStorage.getItem('sheep_points_' + u.nickname) || '0');
+        return { ...u, points: userPoints };
+    }).sort((a, b) => b.points - a.points);
+    
+    if (query) {
+        ranked = ranked.filter(u => u.nickname.toLowerCase().includes(query));
+    }
+    
+    if (ranked.length === 0) {
+        list.innerHTML = '<div class="history-empty">' + (query ? '未找到匹配用户' : '暂无用户数据，快去登录游戏吧！') + '</div>';
+    } else {
+        list.innerHTML = ranked.map((u, i) => {
+            const rank = i + 1;
+            let rankClass = 'normal';
+            let rankDisplay = rank;
+            if (rank === 1) { rankClass = 'top1'; rankDisplay = '🥇'; }
+            else if (rank === 2) { rankClass = 'top2'; rankDisplay = '🥈'; }
+            else if (rank === 3) { rankClass = 'top3'; rankDisplay = '🥉'; }
+            const isMe = currentUser && currentUser.nickname === u.nickname;
+            const avatarHTML = getUserAvatarHTML(u);
+            return `
+                <div class="lb-item${isMe ? ' me' : ''}">
+                    <div class="lb-rank ${rankClass}">${rankDisplay}</div>
+                    <div class="lb-avatar">${avatarHTML}</div>
+                    <div class="lb-info">
+                        <div class="lb-name">${u.nickname}${isMe ? ' (我)' : ''}</div>
+                        <div class="lb-detail">注册于 ${new Date(u.createdAt).toLocaleDateString()}</div>
+                    </div>
+                    <div class="lb-score">⭐ ${u.points}</div>
+                </div>
+            `;
+        }).join('');
+    }
+}
+
+// 搜索用户（登录界面用）
+function searchUsers() {
+    const input = document.getElementById('userSearchInput');
+    const results = document.getElementById('userSearchResults');
+    if (!input || !results) return;
+    const query = input.value.trim().toLowerCase();
+    if (!query) { results.innerHTML = ''; return; }
+    
+    const users = getAllUsers();
+    const found = users.filter(u => u.nickname.toLowerCase().includes(query));
+    if (found.length === 0) {
+        results.innerHTML = '<div style="font-size:.78em;color:#8B7355;text-align:center;padding:8px">未找到匹配用户</div>';
+    } else {
+        results.innerHTML = found.map(u => {
+            const pts = parseInt(localStorage.getItem('sheep_points_' + u.nickname) || '0');
+            const av = getUserAvatarHTML(u);
+            return `<div class="lb-item" style="cursor:pointer;margin-bottom:4px" onclick="quickLogin('${u.nickname.replace(/'/g, "\\'")}')">
+                <div class="lb-avatar">${av}</div>
+                <div class="lb-info"><div class="lb-name">${u.nickname}</div></div>
+                <div class="lb-score">⭐ ${pts}</div>
+            </div>`;
+        }).join('');
+    }
+}
+
+function quickLogin(nickname) {
+    document.getElementById('nicknameInput').value = nickname;
+    onNicknameInput();
+}
+
+function closeLeaderboardModal() {
+    document.getElementById('leaderboardModal').style.display = 'none';
+    // 清空所有列表
+    const el1 = document.getElementById('lbLevelRankingList');
+    if (el1) el1.innerHTML = '';
+    const inp1 = document.getElementById('lbLevelInput');
+    if (inp1) inp1.value = '';
+    // 重置Tab
+    switchLBTab('total');
+}
+
+// 在排行榜弹窗中查询指定关卡的通关排名
+function renderPassLevelRankingInLB() {
+    const input = document.getElementById('lbLevelInput');
+    const list = document.getElementById('lbLevelRankingList');
+    if (!input || !list) return;
+    const levelNum = parseInt(input.value);
+    if (isNaN(levelNum) || levelNum < 1 || levelNum > TOTAL_PASS_LEVELS) {
+        list.innerHTML = '<div class="history-empty">请输入有效的关卡号(1-1000)</div>';
+        return;
+    }
+    
+    const records = getPassLevelRecords(levelNum);
+    if (records.length === 0) {
+        list.innerHTML = '<div class="history-empty">该关卡暂无通关记录，快来挑战吧！</div>';
+        return;
+    }
+    list.innerHTML = records.map((r, i) => {
+        const rank = i + 1;
+        let medal = '';
+        if (rank === 1) medal = '🥇';
+        else if (rank === 2) medal = '🥈';
+        else if (rank === 3) medal = '🥉';
+        const isMe = currentUser && currentUser.nickname === r.nickname;
+        const av = (r.avatarType === 'image' && r.avatar) 
+            ? `<img src="${r.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">` 
+            : (r.avatar || '👤');
+        return `
+            <div class="lb-item${isMe ? ' me' : ''}">
+                <div class="lb-rank ${rank <= 3 ? 'top' + rank : 'normal'}">${medal || rank}</div>
+                <div class="lb-avatar">${av}</div>
+                <div class="lb-info">
+                    <div class="lb-name">${r.nickname}${isMe ? ' (我)' : ''}</div>
+                    <div class="lb-detail">${new Date(r.date).toLocaleDateString()}</div>
+                </div>
+                <div class="lb-score">⏱ ${r.time}秒</div>
+            </div>
+        `;
+    }).join('');
+}
+
+document.getElementById('leaderboardModal').addEventListener('click', function(e) {
+    if (e.target === this) closeLeaderboardModal();
+});
+
+// ============ 排行榜Tab切换 ============
+let currentLBTab = 'total';
+function switchLBTab(tab) {
+    currentLBTab = tab;
+    document.querySelectorAll('.lb-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.lb-tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelector(`.lb-tab[onclick="switchLBTab('${tab}')"]`).classList.add('active');
+    document.getElementById('lbPanel' + (tab === 'total' ? 'Total' : 'Level')).classList.add('active');
+    
+    if (tab === 'total') renderLeaderboard();
+    else if (tab === 'level') renderPassLevelRankingInLB();
+}
+
+
+// ============ 积分系统（需提前定义，供 initUserSystem 使用） ============
+let totalPoints = loadTotalPoints();
+function loadTotalPoints() {
+    try { return parseInt(localStorage.getItem('sheep_total_points')) || 0; } catch(e) { return 0; }
+}
+function saveTotalPoints() {
+    try { localStorage.setItem('sheep_total_points', totalPoints); } catch(e) {}
+    if (typeof currentUser !== 'undefined' && currentUser) {
+        try { localStorage.setItem('sheep_points_' + currentUser.nickname, String(totalPoints)); } catch(e) {}
+    }
+}
+
+// ============ 积分与用户关联 ============
+// 页面加载时初始化
+(function initUserSystem() {
+    loadCurrentUser();
+    updateUserButton();
+    // 如果用户已登录，同步积分
+    if (currentUser) {
+        const saved = parseInt(localStorage.getItem('sheep_points_' + currentUser.nickname) || '0');
+        if (saved > totalPoints) {
+            totalPoints = saved;
+            saveTotalPoints();
+        } else {
+            localStorage.setItem('sheep_points_' + currentUser.nickname, String(totalPoints));
+        }
+    }
+})();
+
+// ============ 音频系统 ============
+let audioCtx = null;
+let musicGain = null;
+let sfxGain = null;
+let musicPlaying = false;
+let musicNodes = [];
+let musicLoopTimer = null;
+let customAudio = null;        // 自定义音频元素
+let customAudioSource = null;  // 自定义音频的MediaElementSource
+let usingCustomMusic = false;  // 是否使用自定义音乐
+
+function initAudio() {
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // 背景音乐总线 - 轻柔舒适的音量
+    musicGain = audioCtx.createGain();
+    musicGain.gain.value = 0.04;
+    musicGain.connect(audioCtx.destination);
+    // 音效总线 - 适中音量
+    sfxGain = audioCtx.createGain();
+    sfxGain.gain.value = 0.5;
+    sfxGain.connect(audioCtx.destination);
+}
+
+// ============ 自定义音乐 ============
+// ============ IndexedDB 音乐存储 ============
+function openMusicDB() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open('SheepGameMusic', 1);
+        req.onupgradeneeded = e => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('music')) {
+                db.createObjectStore('music', { keyPath: 'id' });
+            }
+        };
+        req.onsuccess = e => resolve(e.target.result);
+        req.onerror = e => reject(e.target.error);
+    });
+}
+
+function saveMusicToDB(blob) {
+    return openMusicDB().then(db => {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction('music', 'readwrite');
+            const store = tx.objectStore('music');
+            store.put({ id: 'bgm', blob: blob, timestamp: Date.now() });
+            tx.oncomplete = () => { db.close(); resolve(); };
+            tx.onerror = () => { db.close(); reject(tx.error); };
+        });
+    });
+}
+
+function loadMusicFromDB() {
+    return openMusicDB().then(db => {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction('music', 'readonly');
+            const store = tx.objectStore('music');
+            const req = store.get('bgm');
+            req.onsuccess = () => { db.close(); resolve(req.result); };
+            req.onerror = () => { db.close(); reject(req.error); };
+        });
+    });
+}
+
+function createCustomAudioFromBlob(blob) {
+    if (customAudio) {
+        customAudio.pause();
+        customAudio = null;
+    }
+    customAudio = new Audio();
+    customAudio.src = URL.createObjectURL(blob);
+    customAudio.loop = true;
+    customAudio.volume = 0.5;
+
+    if (audioCtx) {
+        if (customAudioSource) {
+            try { customAudioSource.disconnect(); } catch(e){}
+        }
+        customAudioSource = audioCtx.createMediaElementSource(customAudio);
+        customAudioSource.connect(musicGain);
+    }
+}
+
+function handleMusicFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    initAudio();
+    
+    // 停止当前音乐
+    stopMusic();
+    stopCustomMusic();
+    
+    // 保存到 IndexedDB
+    saveMusicToDB(file).then(() => {
+        console.log('音乐已保存，下次打开自动加载');
+    }).catch(e => {
+        console.log('音乐保存失败（文件可能太大）:', e);
+    });
+    
+    // 创建并播放
+    createCustomAudioFromBlob(file);
+    playCustomMusic();
+}
+
+function playCustomMusic() {
+    if (!customAudio) return;
+    customAudio.play().then(() => {
+        usingCustomMusic = true;
+        musicPlaying = true;
+        updateMusicButton();
+        updateCustomMusicButton();
+    }).catch(e => {
+        console.log('自动播放被阻止，点击页面后播放');
+        const playOnce = () => {
+            customAudio.play();
+            usingCustomMusic = true;
+            musicPlaying = true;
+            updateMusicButton();
+            updateCustomMusicButton();
+            document.removeEventListener('click', playOnce);
+        };
+        document.addEventListener('click', playOnce, { once: true });
+    });
+}
+
+function stopCustomMusic() {
+    if (customAudio) {
+        customAudio.pause();
+        customAudio.currentTime = 0;
+        customAudio = null;
+        customAudioSource = null;
+    }
+    usingCustomMusic = false;
+    updateCustomMusicButton();
+}
+
+function updateCustomMusicButton() {
+    const btn = document.getElementById('customMusicBtn');
+    if (btn) {
+        if (usingCustomMusic) {
+            btn.classList.add('has-custom');
+            btn.title = '已加载自定义音乐 | 点击更换';
+        } else {
+            btn.classList.remove('has-custom');
+            btn.title = '上传本地音乐';
+        }
+    }
+}
+
+function updateMusicButton() {
+    const btn = document.getElementById('musicBtn');
+    if (btn) {
+        btn.textContent = musicPlaying ? '🔊' : '🔇';
+        if (!musicPlaying) btn.classList.add('off');
+        else btn.classList.remove('off');
+    }
+}
+
+function playNote(freq, startTime, duration, type = 'sine', gainVal = 0.4) {
+    if (!audioCtx || !musicPlaying) return;
+    const osc = audioCtx.createOscillator();
+    const env = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    env.gain.setValueAtTime(0, startTime);
+    env.gain.linearRampToValueAtTime(gainVal, startTime + 0.08);
+    env.gain.setValueAtTime(gainVal, startTime + duration * 0.75);
+    env.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+    osc.connect(env);
+    env.connect(musicGain);
+    osc.start(startTime);
+    osc.stop(startTime + duration + 0.08);
+    musicNodes.push(osc, env);
+}
+
+// 舒缓轻快BGM - 吉他分解和弦+口哨感旋律，和谐自然
+function playMelody(startOffset = 0) {
+    if (!musicPlaying || !audioCtx) return;
+    const now = audioCtx.currentTime + startOffset;
+    const t = now;
+    const bpm = 78;
+    const beat = 60 / bpm;
+    const n = {
+        C3:131, D3:147, E3:165, F3:175, G3:196, A3:220, B3:247,
+        C4:262, D4:294, E4:330, F4:349, G4:392, A4:440, B4:494,
+        C5:523, D5:587, E5:659, F5:698, G5:784, A5:880, B5:988, C6:1047, D6:1175
+    };
+
+    // 主旋律 - 轻快跳跃的口哨感（纯五声音阶，和谐不刺耳）
+    const melody = [
+        [n.E5, beat*0.75], [n.G5, beat*0.75], [n.A5, beat*0.75], [n.G5, beat*0.75],
+        [n.E5, beat*1.5], [n.D5, beat*0.75], [n.C5, beat*0.75],
+        [n.D5, beat*0.75], [n.E5, beat*0.75], [n.G5, beat*0.75], [n.A5, beat*0.75],
+        [n.G5, beat*2], [n.E5, beat*1],
+
+        [n.A5, beat*0.75], [n.G5, beat*0.75], [n.E5, beat*0.75], [n.C5, beat*0.75],
+        [n.D5, beat*1.5], [n.E5, beat*0.75], [n.D5, beat*0.75],
+        [n.C5, beat*1.5], [n.A4, beat*0.75], [n.C5, beat*0.75],
+        [n.D5, beat*2], [n.E5, beat*1],
+
+        [n.G5, beat*0.75], [n.E5, beat*0.75], [n.C5, beat*0.75], [n.A4, beat*0.75],
+        [n.C5, beat*1.5], [n.D5, beat*0.75], [n.E5, beat*0.75],
+        [n.G5, beat*2], [n.A5, beat*0.75], [n.G5, beat*0.75], [n.E5, beat*0.5],
+
+        [n.D5, beat*1.5], [n.C5, beat*0.75], [n.A4, beat*0.75],
+        [n.C5, beat*2], [n.D5, beat*1], [n.E5, beat*1],
+        [n.C5, beat*3],
+    ];
+
+    let time = t;
+    melody.forEach(([freq, dur]) => {
+        // triangle主音 - 柔和口哨感
+        playNote(freq, time, dur * 0.88, 'triangle', 0.22);
+        // 轻微正弦泛音 - 增加一点空气感
+        playNote(freq * 2, time, dur * 0.3, 'sine', 0.04);
+        time += dur;
+    });
+
+    // 吉他式分解和弦伴奏（根音+和弦琶音，非常舒缓）
+    const chordProg = [
+        { root: n.C3, tones: [n.E3, n.G3, n.C4], len: beat*6 },
+        { root: n.F3, tones: [n.A3, n.C4, n.F4], len: beat*6 },
+        { root: n.G3, tones: [n.B3, n.D4, n.G4], len: beat*6 },
+        { root: n.C3, tones: [n.E3, n.G3, n.C4], len: beat*6 },
+        { root: n.A3, tones: [n.C4, n.E4, n.A4], len: beat*6 },
+        { root: n.F3, tones: [n.A3, n.C4, n.F4], len: beat*6 },
+        { root: n.G3, tones: [n.B3, n.D4, n.G4], len: beat*4 },
+        { root: n.C3, tones: [n.E3, n.G3, n.C4], len: beat*2 },
+    ];
+
+    time = t;
+    chordProg.forEach(({ root, tones, len }) => {
+        const step = len / 6;
+        // 分解和弦：根音 → 上行琶音 → 下行琶音（模拟吉他指弹）
+        const pattern = [root, tones[0], tones[1], tones[2], tones[1], tones[0]];
+        pattern.forEach((freq, i) => {
+            playNote(freq, time + i * step, step * 0.92, 'sine', 0.1);
+            // 泛音增加空间感
+            playNote(freq * 2, time + i * step, step * 0.2, 'sine', 0.025);
+        });
+        time += len;
+    });
+
+    const totalLen = melody.reduce((s, [, d]) => s + d, 0);
+    if (musicLoopTimer) clearTimeout(musicLoopTimer);
+    musicLoopTimer = setTimeout(() => { if (musicPlaying) playMelody(0); }, totalLen * 1000 - 50);
+    musicNodes.push({ clear: () => { if (musicLoopTimer) clearTimeout(musicLoopTimer); } });
+}
+
+function startMusic() {
+    initAudio();
+    if (musicPlaying) return;
+    musicPlaying = true;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    if (usingCustomMusic && customAudio) {
+        // 播放用户上传的自定义音乐
+        customAudio.play().catch(e => {
+            console.log('自定义音乐播放失败，回退');
+            stopCustomMusic();
+            usingCustomMusic = false;
+        });
+    }
+    
+    if (!usingCustomMusic && defaultBgmBuffer) {
+        // 播放默认BGM（前60秒无缝循环）
+        playLoopedBuffer(defaultBgmBuffer);
+    } else if (!usingCustomMusic) {
+        // 播放内置旋律
+        playMelody();
+    }
+    updateMusicButton();
+    updateCustomMusicButton();
+}
+
+function stopMusic() {
+    musicPlaying = false;
+
+    // 停止生成式BGM
+    musicNodes.forEach(n => { try { if (n.clear) n.clear(); } catch(e){} });
+    musicNodes = [];
+    if (musicLoopTimer) { clearTimeout(musicLoopTimer); musicLoopTimer = null; }
+
+    // 停止无缝循环的默认BGM
+    stopLoopedBuffer();
+
+    // 暂停自定义音乐
+    if (customAudio) {
+        customAudio.pause();
+    }
+    updateMusicButton();
+}
+
+function toggleMusic() {
+    if (musicPlaying) {
+        stopMusic();
+    } else {
+        startMusic();
+    }
+}
+
+document.addEventListener('click', function initAudioOnce() { initAudio(); }, { once: true });
+
+// ============ 音效系统 ============
+let sfxEnabled = true;
+
+// 辅助函数：创建和谐音效
+function sfxOsc(now, freq, type, gainStart, gainPeak, gainEnd, dur, dest = null) {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, now);
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(gainPeak, now + gainStart);
+    gain.gain.setValueAtTime(gainPeak, now + dur * 0.4);
+    gain.gain.exponentialRampToValueAtTime(gainEnd, now + dur);
+    osc.connect(gain);
+    gain.connect(dest || sfxGain);
+    osc.start(now);
+    osc.stop(now + dur + 0.02);
+}
+
+function playSfx(type) {
+    if (!sfxEnabled) return;
+    initAudio();
+    if (!audioCtx) return;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    
+    const now = audioCtx.currentTime;
+    
+    if (type === 'click') {
+        // 轻快"啵"声 - 短促跳跃，像泡泡轻弹，不刺耳
+        sfxOsc(now, 784, 'triangle', 0.003, 0.32, 0.001, 0.09);   // G5 主音
+        sfxOsc(now, 988, 'sine', 0.003, 0.12, 0.001, 0.06);       // B5 泛音
+        sfxOsc(now + 0.02, 659, 'triangle', 0.003, 0.16, 0.001, 0.06); // E5 尾音
+    }
+    else if (type === 'menu') {
+        // 柔和木琴声 - 下行二度，温暖自然
+        sfxOsc(now, 587, 'triangle', 0.01, 0.2, 0.001, 0.12);    // D5
+        sfxOsc(now + 0.05, 523, 'triangle', 0.01, 0.14, 0.001, 0.12); // C5
+        sfxOsc(now, 1175, 'sine', 0.01, 0.05, 0.001, 0.07);
+    }
+    else if (type === 'match') {
+        // 消除音效 - 五声音阶上行 C5→D5→E5→G5→C6，明亮不刺耳
+        const chord = [523, 587, 659, 784, 1047];
+        chord.forEach((freq, i) => {
+            const t = now + i * 0.08;
+            sfxOsc(t, freq, 'triangle', 0.01, 0.2, 0.001, 0.15);
+            sfxOsc(t, freq * 2, 'sine', 0.01, 0.05, 0.001, 0.08);
+        });
+    }
+    else if (type === 'win') {
+        // 胜利 - 温暖欢快的上行五声音阶
+        const winNotes = [392, 523, 659, 784, 1047]; // G4 C5 E5 G5 C6
+        winNotes.forEach((freq, i) => {
+            const t = now + i * 0.14;
+            sfxOsc(t, freq, 'triangle', 0.02, 0.18, 0.001, 0.3);
+            sfxOsc(t, freq * 0.5, 'sine', 0.02, 0.06, 0.001, 0.22);
+        });
+    }
+    else if (type === 'lose') {
+        // 失败 - 柔和的下行叹息
+        const loseNotes = [440, 392, 349]; // A4 G4 F4
+        loseNotes.forEach((freq, i) => {
+            const t = now + i * 0.18;
+            sfxOsc(t, freq, 'triangle', 0.02, 0.14, 0.001, 0.25);
+            sfxOsc(t, freq * 0.5, 'sine', 0.02, 0.05, 0.001, 0.18);
+        });
+    }
+}
+
+function toggleSfx() {
+    sfxEnabled = !sfxEnabled;
+}
+
+// ============ 主题系统（含背景配置） ============
+const THEMES = {
+    animals:{name:'动物乐园',icon:'🎯',emojis:['🐑','🐘','🐸','🦊','🐼','🐧','🦁','🐒','🦄','🐢'],
+        bg:{
+            sky:'linear-gradient(180deg,#87CEEB 0%,#B0E0E6 30%,#98FB98 60%,#90EE90 85%,#66CDAA 100%)',
+            ground:['🌸','🌼','🌻','🌷','🌺','🌿','🍀'],
+            groundColor:'#7CCD7C',groundColor2:'#5BAA5B',
+            decorations:'sun+clouds+fence+grass',
+            sunColor:'#FFD700,#FFA500'
+        }
+    },
+    fruits:{name:'水果缤纷',icon:'🍎',emojis:['🍎','🍌','🍇','🍊','🍓','🍑','🥝','🍒','🍍','🥭'],
+        bg:{
+            sky:'linear-gradient(180deg,#FFE4B5 0%,#FFDAB9 30%,#FFE4E1 60%,#FFE4B5 85%,#FFDEAD 100%)',
+            ground:['🍎','🍌','🍇','🍊','🍓','🍑'],
+            groundColor:'#FFB347',groundColor2:'#FF8C00',
+            decorations:'sun+clouds+fence+grass',
+            sunColor:'#FF6347,#FF4500'
+        }
+    },
+    food:{name:'美食天地',icon:'🍕',emojis:['🍕','🍔','🌮','🍩','🎂','🍿','🧁','🍭','🥨','🍪'],
+        bg:{
+            sky:'linear-gradient(180deg,#FFF8DC 0%,#FFE4B5 30%,#FFFACD 60%,#FFF5EE 85%,#FFE4E1 100%)',
+            ground:['🍕','🍔','🌮','🍩','🎂','🧁'],
+            groundColor:'#DEB887',groundColor2:'#D2B48C',
+            decorations:'sun+clouds+fence+grass',
+            sunColor:'#FFD700,#FFA500'
+        }
+    },
+    ocean:{name:'海底世界',icon:'🐠',emojis:['🐠','🐙','🦀','🐬','🦈','🐳','🦑','🐡','🦞','🐚'],
+        bg:{
+            sky:'linear-gradient(180deg,#006994 0%,#1E90FF 30%,#00BFFF 60%,#87CEEB 85%,#ADD8E6 100%)',
+            ground:['🐠','🐙','🐚','🦀','🐬','🐡'],
+            groundColor:'#20B2AA',groundColor2:'#008B8B',
+            decorations:'bubbles+waves+seaweed',
+            sunColor:'rgba(255,255,255,.4),rgba(200,230,255,.3)'
+        }
+    },
+    space:{name:'太空探险',icon:'🚀',emojis:['🚀','🌟','🌍','🛸','☄️','🌙','⭐','🪐','👾','🔭'],
+        bg:{
+            sky:'linear-gradient(180deg,#0B0B2B 0%,#1A1A4E 30%,#2D1B69 60%,#1A1A4E 85%,#0B0B2B 100%)',
+            ground:['⭐','🌟','🌙','☄️','🪐','💫'],
+            groundColor:'#2D1B69',groundColor2:'#1A1A4E',
+            decorations:'stars+moon+planets',
+            sunColor:'rgba(255,255,255,.6),rgba(200,200,255,.3)'
+        }
+    },
+    sports:{name:'运动达人',icon:'⚽',emojis:['⚽','🏀','🎾','🏈','⚾','🎱','🏓','🏸','🥊','🛹'],
+        bg:{
+            sky:'linear-gradient(180deg,#E8F5E9 0%,#C8E6C9 30%,#A5D6A7 60%,#81C784 85%,#66BB6A 100%)',
+            ground:['⚽','🏀','🎾','🏈','⚾','🏓'],
+            groundColor:'#66BB6A',groundColor2:'#43A047',
+            decorations:'sun+clouds+fence+grass',
+            sunColor:'#FFD700,#FFA500'
+        }
+    },
+};
+const THEME_KEYS = Object.keys(THEMES);
+
+// ============ 背景切换 ============
+function applyThemeBackground(themeKey) {
+    const theme = THEMES[themeKey];
+    const bg = theme.bg;
+    const body = document.body;
+    const bgLayer = document.getElementById('bgLayer');
+
+    // 切换body渐变背景
+    body.style.background = bg.sky;
+
+    // 重建背景层
+    bgLayer.innerHTML = '';
+
+    if (bg.decorations.includes('sun')) {
+        const sun = document.createElement('div');
+        sun.className = 'bg-sun';
+        sun.style.background = `radial-gradient(circle,${bg.sunColor})`;
+        bgLayer.appendChild(sun);
+    }
+
+    if (bg.decorations.includes('clouds')) {
+        for (let i = 1; i <= 3; i++) {
+            const cloud = document.createElement('div');
+            cloud.className = `cloud cloud-${i}`;
+            bgLayer.appendChild(cloud);
+        }
+    }
+
+    if (bg.decorations.includes('bubbles')) {
+        // 海底气泡
+        for (let i = 0; i < 8; i++) {
+            const bubble = document.createElement('div');
+            const size = 10 + Math.random() * 20;
+            bubble.style.cssText = `
+                position:absolute;width:${size}px;height:${size}px;
+                background:rgba(255,255,255,.25);border-radius:50%;
+                left:${5 + Math.random() * 90}%;bottom:${10 + Math.random() * 80}%;
+                animation:bubbleUp ${3 + Math.random() * 4}s ease-in infinite;
+                animation-delay:${Math.random() * 3}s;
+            `;
+            bgLayer.appendChild(bubble);
+        }
+    }
+
+    if (bg.decorations.includes('waves')) {
+        const waves = document.createElement('div');
+        waves.style.cssText = `
+            position:absolute;bottom:0;left:0;right:0;height:40px;
+            background:rgba(255,255,255,.15);
+            border-radius:50% 50% 0 0 / 20px 20px 0 0;
+            animation:waveMove 4s ease-in-out infinite;
+        `;
+        bgLayer.appendChild(waves);
+    }
+
+    if (bg.decorations.includes('seaweed')) {
+        for (let i = 0; i < 4; i++) {
+            const sw = document.createElement('div');
+            sw.style.cssText = `
+                position:absolute;bottom:0;font-size:28px;
+                left:${10 + i * 22}%;
+                animation:swordSway ${2 + Math.random() * 2}s ease-in-out infinite;
+                animation-delay:${i * 0.3}s;
+            `;
+            sw.textContent = ['🌿','🪸','🌊','🐚'][i];
+            bgLayer.appendChild(sw);
+        }
+    }
+
+    if (bg.decorations.includes('stars')) {
+        for (let i = 0; i < 20; i++) {
+            const star = document.createElement('div');
+            const size = 2 + Math.random() * 4;
+            star.style.cssText = `
+                position:absolute;width:${size}px;height:${size}px;
+                background:#fff;border-radius:50%;
+                left:${Math.random() * 100}%;top:${Math.random() * 70}%;
+                animation:starTwinkle ${1 + Math.random() * 2}s ease-in-out infinite;
+                animation-delay:${Math.random() * 2}s;
+                box-shadow:0 0 ${size*2}px rgba(255,255,255,.5);
+            `;
+            bgLayer.appendChild(star);
+        }
+    }
+
+    if (bg.decorations.includes('moon')) {
+        const moon = document.createElement('div');
+        moon.style.cssText = `
+            position:absolute;width:50px;height:50px;
+            background:radial-gradient(circle,#FFFACD,#FFD700);
+            border-radius:50%;top:25px;right:80px;
+            box-shadow:0 0 30px rgba(255,255,200,.4);
+        `;
+        bgLayer.appendChild(moon);
+    }
+
+    if (bg.decorations.includes('planets')) {
+        const planet = document.createElement('div');
+        planet.style.cssText = `
+            position:absolute;width:40px;height:40px;
+            background:radial-gradient(circle,#FF6347,#8B0000);
+            border-radius:50%;top:40px;left:15%;
+            box-shadow:0 0 20px rgba(255,99,71,.4);
+            animation:sunPulse 5s ease-in-out infinite;
+        `;
+        bgLayer.appendChild(planet);
+    }
+
+    if (bg.decorations.includes('fence')) {
+        const fence = document.createElement('div');
+        fence.className = 'fence';
+        bgLayer.appendChild(fence);
+    }
+
+    if (bg.decorations.includes('grass')) {
+        const grass = document.createElement('div');
+        grass.className = 'bg-grass';
+        grass.style.background = `linear-gradient(180deg,${bg.groundColor} 0%,${bg.groundColor2} 40%,${bg.groundColor2} 100%)`;
+        bgLayer.appendChild(grass);
+    }
+
+    // 地面装饰图案
+    if (bg.ground) {
+        bg.ground.forEach((e, i) => {
+            const fl = document.createElement('span');
+            fl.className = 'flower';
+            fl.style.left = (5 + i * 14) + '%';
+            fl.textContent = e;
+            bgLayer.appendChild(fl);
+        });
+    }
+
+    // 添加动画keyframes（如果不存在）
+    addDynamicKeyframes();
+}
+
+function addDynamicKeyframes() {
+    if (document.getElementById('dynamicKeyframes')) return;
+    const style = document.createElement('style');
+    style.id = 'dynamicKeyframes';
+    style.textContent = `
+        @keyframes bubbleUp {
+            0%{transform:translateY(0) scale(1);opacity:.6}
+            100%{transform:translateY(-100px) scale(1.5);opacity:0}
+        }
+        @keyframes waveMove {
+            0%,100%{transform:translateY(0)}
+            50%{transform:translateY(-8px)}
+        }
+        @keyframes starTwinkle {
+            0%,100%{opacity:.3;transform:scale(1)}
+            50%{opacity:1;transform:scale(1.5)}
+        }
+        @keyframes swordSway {
+            0%,100%{transform:rotate(-5deg)}
+            50%{transform:rotate(5deg)}
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// ============ 配置 ============
+function getSlotMax() {
+    // 通关模式下根据关卡配置动态调整槽位上限
+    if (timeMode === 'pass' && config.slotMax !== undefined) {
+        return config.slotMax;
+    }
+    return 7; // 默认7个槽位
+}
+const DIFFICULTY = {
+    easy:{types:7,layers:3,cardsPerType:9,name:'简单',timeLimit:120},
+    normal:{types:9,layers:4,cardsPerType:9,name:'普通',timeLimit:120},
+    hard:{types:11,layers:8,cardsPerType:15,name:'困难',timeLimit:180},
+};
+const GLOBAL_COLS = 7;
+const GLOBAL_ROWS = 8;
+
+// ============ 图标大小可调节 ============
+let cardIconSize = 52; // 默认卡片宽度(px) — 单人模式/共享默认值
+function getCardSize(pid) {
+    const size = gameMode === 'dual' && players[pid] && players[pid].iconSize ? players[pid].iconSize : cardIconSize;
+    return { w: size, h: Math.round(size * 1.154) }; // 保持宽高比约 52:60
+}
+function getSlotSize(pid) {
+    const cs = getCardSize(pid);
+    return { w: Math.round(cs.w * 0.81), h: Math.round(cs.h * 0.87) }; // 槽位约为卡片的80%
+}
+
+function changeIconSize(value, pid) {
+    const newSize = parseInt(value);
+    if (gameMode === 'dual') {
+        // 双人模式：仅更新当前玩家的图标大小，不影响对方
+        const p = players[pid];
+        if (p) p.iconSize = newSize;
+    } else {
+        // 单人模式：更新全局大小
+        cardIconSize = newSize;
+    }
+    const size = getCardSize(pid);
+    const ssize = getSlotSize(pid);
+
+    // 更新当前玩家的数值显示
+    const valEl = document.getElementById('sizeVal-' + pid);
+    if (valEl) valEl.textContent = size.w + 'px';
+
+    // 仅更新当前玩家面板的卡片样式
+    const area = getCardArea(pid);
+    if (area) {
+        area.querySelectorAll('.card').forEach(el => {
+            el.style.width = size.w + 'px';
+            el.style.height = size.h + 'px';
+            el.style.fontSize = (size.w * 0.035) + 'em';
+            el.style.borderRadius = Math.round(size.w * 0.15) + 'px';
+        });
+    }
+    // 更新当前玩家槽位
+    const sa = getSlotArea(pid);
+    if (sa) {
+        sa.querySelectorAll('.slot-item, .slot-placeholder').forEach(el => {
+            el.style.width = ssize.w + 'px';
+            el.style.height = ssize.h + 'px';
+            el.style.fontSize = (ssize.w * 0.036) + 'em';
+        });
+        sa.style.height = Math.round(ssize.h + 24) + 'px';
+    }
+
+    // 仅重新渲染当前玩家的卡片
+    const player = players[pid];
+    if (player && !player.gameOver) renderCards(player, pid);
+}
+
+// 通关模式连胜计数
+let passWinStreak = 0;
+// 通关模式内部得分（单独展示）
+let passModePoints = loadPassModePoints();
+
+function loadPassModePoints() {
+    try { return parseInt(localStorage.getItem('sheep_pass_points')) || 0; } catch(e) { return 0; }
+}
+function savePassModePoints() {
+    try { localStorage.setItem('sheep_pass_points', passModePoints); } catch(e) {}
+}
+
+// 积分规则：
+// - 简单模式过关：+1分
+// - 普通模式过关：+1分
+// - 困难模式过关：+3分
+// - 通关模式每过一关：+2分；连续3关及以上胜利额外+1分（每多赢一关额外+1）
+function awardPoints(mode, diff) {
+    let pts = 0;
+    if (mode === 'pass') {
+        pts = 2;
+        if (passWinStreak >= 3) pts += 1; // 连续第3关起每关额外+1
+    } else {
+        if (diff === 'hard') pts = 3;
+        else pts = 1;
+    }
+    totalPoints += pts;
+    saveTotalPoints();
+    return pts;
+}
+
+function awardPassModePoints() {
+    let pts = 2;
+    if (passWinStreak >= 3) pts += 1;
+    passModePoints += pts;
+    savePassModePoints();
+    return pts;
+}
+
+function resetPassWinStreak() {
+    passWinStreak = 0;
+}
+
+function updatePointsDisplay() {
+    document.querySelectorAll('.pts-display').forEach(el => { el.textContent = totalPoints; });
+}
+
+// ============ 关卡通关时间排名系统 ============
+// 存储结构: { "level_N": [ { nickname, avatar, avatarType, time, date }, ... ] }
+function getPassLevelRecords(levelNum) {
+    try {
+        const raw = localStorage.getItem('sheep_pass_level_records');
+        const all = raw ? JSON.parse(raw) : {};
+        return all['level_' + levelNum] || [];
+    } catch(e) { return []; }
+}
+
+function savePassLevelRecord(levelNum, nickname, avatar, avatarType, timeSec) {
+    try {
+        const raw = localStorage.getItem('sheep_pass_level_records');
+        const all = raw ? JSON.parse(raw) : {};
+        const key = 'level_' + levelNum;
+        if (!all[key]) all[key] = [];
+        // 同一用户多次通关，只保留最佳（最短）时间
+        const existingIdx = all[key].findIndex(r => r.nickname === nickname);
+        if (existingIdx >= 0) {
+            if (timeSec < all[key][existingIdx].time) {
+                all[key][existingIdx].time = timeSec;
+                all[key][existingIdx].date = new Date().toISOString();
+            }
+        } else {
+            all[key].push({ nickname, avatar, avatarType, time: timeSec, date: new Date().toISOString() });
+        }
+        // 按时间升序排列
+        all[key].sort((a, b) => a.time - b.time);
+        localStorage.setItem('sheep_pass_level_records', JSON.stringify(all));
+        return all[key];
+    } catch(e) { return []; }
+}
+
+// ============ 通关模式关卡配置（动态生成1000关） ============
+const TOTAL_PASS_LEVELS = 1000;
+
+// 通关进度持久化存储
+function savePassProgress(clearedLevels) {
+    try {
+        localStorage.setItem('sheep_pass_cleared', JSON.stringify([...clearedLevels]));
+    } catch(e) {}
+}
+function loadPassProgress() {
+    try {
+        const data = localStorage.getItem('sheep_pass_cleared');
+        return data ? new Set(JSON.parse(data)) : new Set();
+    } catch(e) { return new Set(); }
+}
+
+// ============ 游玩记录持久化存储 ============
+const HISTORY_MAX = 200; // 最多保存200条记录
+const HISTORY_PER_PAGE = 20; // 每页显示20条
+
+function saveHistoryRecord(record) {
+    try {
+        const data = loadHistoryRecords();
+        data.unshift(record); // 最新记录放最前面
+        if (data.length > HISTORY_MAX) data.length = HISTORY_MAX;
+        localStorage.setItem('sheep_game_history', JSON.stringify(data));
+    } catch(e) {}
+}
+
+function loadHistoryRecords() {
+    try {
+        const data = localStorage.getItem('sheep_game_history');
+        return data ? JSON.parse(data) : [];
+    } catch(e) { return []; }
+}
+
+function clearHistory() {
+    if (!confirm('确定要清空所有游玩记录吗？此操作不可恢复！')) return;
+    try {
+        localStorage.removeItem('sheep_game_history');
+    } catch(e) {}
+    historyFilterMode = 'all';
+    historyPage = 1;
+    if (currentScreen === 'screenHistory') renderHistoryList();
+}
+
+// 记录一次游戏结果
+function recordGameResult(outcome, detail) {
+    const record = {
+        id: Date.now(),
+        date: new Date().toISOString(),
+        outcome: outcome,       // 'win' | 'lose' | 'draw'
+        mode: gameMode,         // 'solo' | 'dual'
+        timeMode: timeMode,     // 'free' | 'timed' | 'pass'
+        difficulty: timeMode === 'pass' 
+            ? (getPassLevelConfig(passModeState.currentLevel)?.name || '通关模式')
+            : config.name,
+        score: gameMode === 'dual' 
+            ? { p0: players['p0']?.score || 0, p1: players['p1']?.score || 0 }
+            : players['p0']?.score || 0,
+        time: gameMode === 'dual'
+            ? { p0: players['p0']?.timerSec || 0, p1: players['p1']?.timerSec || 0 }
+            : players['p0']?.timerSec || 0,
+        theme: players['p0']?._themeKey || 'animals',
+        reason: detail || '',
+    };
+    if (timeMode === 'pass') {
+        record.passLevel = passModeState.currentLevel;
+        record.passTotalScore = passModeState.totalScore;
+    }
+    saveHistoryRecord(record);
+}
+
+// ============ 游玩记录展示 ============
+let historyFilterMode = 'all'; // 'all' | 'solo' | 'dual' | 'pass'
+let historyPage = 1;
+
+function filterHistory(mode) {
+    historyFilterMode = mode;
+    historyPage = 1;
+    renderHistoryList();
+}
+
+function historyGoToPage(action) {
+    const records = getFilteredRecords();
+    const totalPages = Math.max(1, Math.ceil(records.length / HISTORY_PER_PAGE));
+    switch(action) {
+        case 'first': historyPage = 1; break;
+        case 'prev': historyPage = Math.max(1, historyPage - 1); break;
+        case 'next': historyPage = Math.min(totalPages, historyPage + 1); break;
+        case 'last': historyPage = totalPages; break;
+    }
+    renderHistoryList();
+}
+
+function getFilteredRecords() {
+    const records = loadHistoryRecords();
+    if (historyFilterMode === 'all') return records;
+    if (historyFilterMode === 'pass') return records.filter(r => r.timeMode === 'pass');
+    return records.filter(r => r.mode === historyFilterMode && r.timeMode !== 'pass');
+}
+
+function showHistory() {
+    historyFilterMode = 'all';
+    historyPage = 1;
+    switchScreen(currentScreen, 'screenHistory');
+    renderHistoryList();
+}
+
+function renderHistoryList() {
+    const list = document.getElementById('historyList');
+    const sub = document.getElementById('historySub');
+    const pageInfo = document.getElementById('historyPageInfo');
+    if (!list) return;
+
+    const allRecords = getFilteredRecords();
+    const totalPages = Math.max(1, Math.ceil(allRecords.length / HISTORY_PER_PAGE));
+    if (historyPage > totalPages) historyPage = totalPages;
+
+    // 统计信息
+    const winCount = allRecords.filter(r => r.outcome === 'win').length;
+    const loseCount = allRecords.filter(r => r.outcome === 'lose').length;
+    const drawCount = allRecords.filter(r => r.outcome === 'draw').length;
+    const totalGames = allRecords.length;
+    const winRate = totalGames > 0 ? Math.round(winCount / totalGames * 100) : 0;
+
+    sub.textContent = `共 ${totalGames} 局 · 胜 ${winCount} · 负 ${loseCount} · 胜率 ${winRate}%`;
+    pageInfo.textContent = totalPages > 0 ? `第${historyPage}页 / 共${totalPages}页` : '暂无记录';
+
+    list.innerHTML = '';
+
+    if (allRecords.length === 0) {
+        list.innerHTML = '<div class="history-empty">📭 还没有游玩记录<br>快去开始一局游戏吧！</div>';
+        return;
+    }
+
+    const start = (historyPage - 1) * HISTORY_PER_PAGE;
+    const end = Math.min(start + HISTORY_PER_PAGE, allRecords.length);
+    const pageRecords = allRecords.slice(start, end);
+
+    pageRecords.forEach(r => {
+        const item = document.createElement('div');
+        item.className = 'history-item';
+
+        // 图标
+        let icon, modeLabel;
+        if (r.timeMode === 'pass') {
+            icon = '🏰';
+            modeLabel = `通关模式 · 第${r.passLevel || '?'}关`;
+        } else if (r.mode === 'dual') {
+            icon = '👥';
+            modeLabel = '双人对战';
+        } else {
+            icon = '👤';
+            modeLabel = '单人模式';
+        }
+
+        // 结果
+        let outcomeText, outcomeClass;
+        if (r.outcome === 'win') { outcomeText = '胜利'; outcomeClass = 'win'; }
+        else if (r.outcome === 'lose') { outcomeText = '失败'; outcomeClass = 'lose'; }
+        else { outcomeText = '平局'; outcomeClass = ''; }
+
+        // 分数显示
+        let scoreStr;
+        if (r.mode === 'dual' && typeof r.score === 'object') {
+            scoreStr = `🔴${r.score.p0} : 🔵${r.score.p1}`;
+        } else {
+            scoreStr = `🏆 ${r.score}次消除`;
+        }
+
+        // 时间显示
+        let timeStr;
+        if (r.mode === 'dual' && typeof r.time === 'object') {
+            timeStr = `${r.time.p0}s / ${r.time.p1}s`;
+        } else {
+            timeStr = `${r.time}s`;
+        }
+
+        // 日期
+        const d = new Date(r.date);
+        const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+
+        item.innerHTML = `
+            <span class="h-icon">${icon}</span>
+            <div class="h-info">
+                <div class="h-mode">${modeLabel} · ${r.difficulty}</div>
+                <div class="h-detail">${scoreStr} | ⏱ ${timeStr} | 📅 ${dateStr}</div>
+                ${r.reason ? `<div class="h-detail" style="color:rgba(255,255,255,.45)">${r.reason}</div>` : ''}
+            </div>
+            <div class="h-result">
+                <div class="h-outcome ${outcomeClass}">${outcomeText}</div>
+            </div>
+        `;
+        list.appendChild(item);
+    });
+}
+
+function getPassLevelConfig(level) {
+    // 难度分段
+    // 1-200:   入门阶段   types=5~7, layers=2~4, cpt=6~9,   时间充足, 槽位7, 道具5
+    // 201-400: 进阶       types=7~9, layers=3~5, cpt=9~11,  时间收紧, 槽位7, 道具5
+    // 401-600: 挑战       types=8~10, layers=4~6, cpt=10~14, 时间更紧, 槽位6, 道具4
+    // 601-800: 困难       types=9~12, layers=5~8, cpt=12~16, 时间紧迫, 槽位5, 道具3
+    // 801-1000: 地狱      types=10~12, layers=6~9, cpt=14~18, 极限时间, 槽位5, 道具2
+
+    const seg = Math.floor((level - 1) / 200); // 0~4
+    const segIdx = ((level - 1) % 200) / 199;  // 当前段内的进度 0~1
+
+    // 700关后加入波动性：奇数关较难，偶数关稍简单
+    let difficultyBump = 0;
+    if (level >= 701) {
+        // 波动幅度随关卡递增：700关±1, 1000关±2
+        const waveAmp = 1 + Math.floor((level - 701) / 150);
+        difficultyBump = (level % 2 === 1) ? waveAmp : -Math.floor(waveAmp * 0.6);
+    }
+
+    // 每段的参数范围 [min, max]
+    const ranges = [
+        { types:[5,7], layers:[2,4], cpt:[6,9], tLimit:[300,180], slotMax:7, itemCount:5, name:'入门' },
+        { types:[7,9], layers:[3,5], cpt:[9,11], tLimit:[240,150], slotMax:7, itemCount:5, name:'进阶' },
+        { types:[8,10], layers:[4,6], cpt:[10,14], tLimit:[210,140], slotMax:6, itemCount:4, name:'挑战' },
+        { types:[9,12], layers:[5,8], cpt:[12,16], tLimit:[180,120], slotMax:5, itemCount:3, name:'困难' },
+        { types:[10,12], layers:[6,9], cpt:[14,18], tLimit:[160,110], slotMax:5, itemCount:2, name:'地狱' },
+    ];
+    const r = ranges[seg];
+
+    let types = Math.round(r.types[0] + segIdx * (r.types[1] - r.types[0]));
+    let layers = Math.round(r.layers[0] + segIdx * (r.layers[1] - r.layers[0]));
+    let cardsPerType = Math.round(r.cpt[0] + segIdx * (r.cpt[1] - r.cpt[0]));
+    const timeLimit = Math.round(r.tLimit[0] + segIdx * (r.tLimit[1] - r.tLimit[0]));
+    const slotMax = r.slotMax;
+    const itemCount = r.itemCount;
+    
+    // 应用波动性（700关后）
+    if (difficultyBump !== 0) {
+        types = Math.max(5, Math.min(12, types + difficultyBump));
+        layers = Math.max(2, Math.min(9, layers + (difficultyBump > 0 ? 1 : 0)));
+        cardsPerType = Math.max(6, Math.min(18, cardsPerType + difficultyBump * 2));
+    }
+    
+    // 确保 cardsPerType 是3的倍数（三消机制）
+    cardsPerType = Math.round(cardsPerType / 3) * 3;
+    if (cardsPerType < 6) cardsPerType = 6;
+
+    const name = `第${level}关·${r.name}${difficultyBump > 0 ? '🔥' : (difficultyBump < 0 ? '💨' : '')}`;
+
+    return { level, types, layers, cardsPerType, timeLimit, slotMax, itemCount, name };
+}
+
+// ============ 全局状态 ============
+let gameMode = 'solo';      // 'solo' | 'dual'
+let timeMode = 'free';      // 'free' | 'timed' | 'pass'
+let currentDifficulty = 'normal';
+let config = DIFFICULTY['normal'];
+let timedSeconds = 120;     // 当前限时秒数
+let currentScreen = 'screenMain';
+
+// 通关模式状态
+let passModeState = { currentLevel: 1, totalLevels: TOTAL_PASS_LEVELS, totalScore: 0, totalTime: 0, clearedLevels: loadPassProgress() };
+
+// 玩家数据结构
+function createPlayerState() {
+    return {
+        cards: [], slotCards: [], score: 0, history: [],
+        gameOver: false, timerSec: 0, timerInterval: null,
+        idleTimer: null, bubbleEl: null, hintedCardIds: [],
+        countdown: 120, _themeKey: 'animals', _emojis: THEMES['animals'].emojis,
+        shuffleRemaining: 5, // 洗牌剩余次数
+        undoRemaining: 5,   // 撤回剩余次数
+        iconSize: 52,       // 双人模式各玩家独立图标大小
+    };
+}
+let players = { p0: createPlayerState() };
+
+// ============ 屏幕切换 ============
+function switchScreen(fromId, toId) {
+    document.getElementById(fromId).classList.remove('active');
+    document.getElementById(toId).classList.add('active');
+    currentScreen = toId;
+    // 切换到首页时更新积分显示
+    if (toId === 'screenMain') updatePointsDisplay();
+    if (toId === 'screenPassLevels') renderPassLevelGrid();
+}
+
+function goToScreen(toId, mode) {
+    if (toId === 'screenMain') {
+        gameMode = 'solo';
+        switchScreen(currentScreen, toId);
+        return;
+    }
+    
+    if (toId === 'screenTime') {
+        // 通关模式：显示关卡选择界面
+        if (mode === 'pass') {
+            gameMode = 'solo';
+            timeMode = 'pass';
+            currentDifficulty = 'easy';
+            config = DIFFICULTY['easy'];
+            timedSeconds = config.timeLimit;
+            passModeState = { currentLevel: 1, totalLevels: TOTAL_PASS_LEVELS, totalScore: 0, totalTime: 0, clearedLevels: loadPassProgress() };
+            switchScreen(currentScreen, 'screenPassLevels');
+            renderPassLevelGrid();
+            return;
+        }
+        // 如果传了 mode 参数则更新 gameMode，否则保持当前 gameMode
+        if (mode) gameMode = mode;
+        document.getElementById('timeTitle').textContent = gameMode === 'solo' ? '👤 单人 · 时间模式' : '👥 双人 · 时间模式';
+        document.getElementById('timeSub').textContent = gameMode === 'solo' ? '选择不限时或限时挑战' : '双方共同选择时间模式';
+    }
+    switchScreen(currentScreen, toId);
+}
+
+function selectTimeMode(mode) {
+    timeMode = mode;
+    // 更新难度菜单标题
+    const modeStr = gameMode === 'solo' ? '单人' : '双人';
+    const timeStr = mode === 'free' ? '不限时' : '限时';
+    document.getElementById('diffTitle').textContent = `选择难度 · ${modeStr}${timeStr}`;
+    document.getElementById('diffSub').textContent = mode === 'timed' ? '困难限时模式为三分钟' : '';
+    switchScreen(currentScreen, 'screenDiff');
+}
+
+function selectDifficulty(diff) {
+    currentDifficulty = diff;
+    config = DIFFICULTY[diff];
+    timedSeconds = config.timeLimit;
+    
+    switchScreen(currentScreen, 'gameWrapper');
+    startGame();
+}
+
+function backToMenu() {
+    // 隐藏通关结果遮罩（如果正在显示）
+    hidePassResult();
+    // 停止所有玩家计时器并清理卡片区域
+    Object.entries(players).forEach(([pid, p]) => {
+        stopPlayerTimer(p);
+        clearIdleTimer(p);
+        clearHint(p, pid);
+        removeBubble(p);
+        // 清除卡牌区域的所有卡片和overlay，防止穿模残留
+        const area = getCardArea(pid);
+        if (area) area.querySelectorAll('.card,.overlay').forEach(el => el.remove());
+    });
+
+    // 智能返回：根据当前所在界面返回上一级
+    const screenFlow = ['screenMain', 'screenTime', 'screenPassLevels', 'screenDiff', 'gameWrapper'];
+    const currentIdx = screenFlow.indexOf(currentScreen);
+    
+    if (currentIdx <= 0) {
+        // 已在首页或未知界面，回到首页
+        document.getElementById('gameWrapper').classList.remove('active');
+        document.getElementById('screenPassLevels').classList.remove('active');
+        document.getElementById('screenMain').classList.add('active');
+        currentScreen = 'screenMain';
+        updatePointsDisplay();
+        return;
+    }
+
+    // 隐藏当前界面
+    document.getElementById(currentScreen).classList.remove('active');
+    
+    // 游戏界面特殊处理
+    if (currentScreen === 'gameWrapper') {
+        document.getElementById('gameWrapper').classList.remove('active');
+        // 通关模式返回关卡选择，否则返回难度选择
+        if (timeMode === 'pass') {
+            document.getElementById('screenPassLevels').classList.add('active');
+            currentScreen = 'screenPassLevels';
+        } else {
+            document.getElementById('screenDiff').classList.add('active');
+            currentScreen = 'screenDiff';
+        }
+    } else {
+        // 其他界面：返回上一级
+        const prevScreen = screenFlow[currentIdx - 1];
+        document.getElementById(prevScreen).classList.add('active');
+        currentScreen = prevScreen;
+    }
+    // 如果回到了首页或通关模式选择界面，更新积分显示
+    if (currentScreen === 'screenMain') updatePointsDisplay();
+    if (currentScreen === 'screenPassLevels') renderPassLevelGrid();
+}
+
+// ============ 构建双人面板DOM ============
+function buildDualPanels() {
+    const container = document.getElementById('dualPanels');
+    container.innerHTML = '';
+
+    ['p0','p1'].forEach(pid => {
+        const label = pid === 'p0' ? '🔴 红方' : '🔵 蓝方';
+        const cls = pid === 'p0' ? 'red' : 'blue';
+
+        const panel = document.createElement('div');
+        panel.className = 'player-panel';
+        panel.id = `panel-${pid}`;
+        panel.innerHTML = `
+            <div class="panel-label ${cls}">${label}</div>
+            <div class="theme-tag" id="themeTag-${pid}">🎯 主题</div>
+            <div class="info-bar">
+                <span>🏆 <span class="val" id="scoreDisplay-${pid}">0</span></span>
+                <span>📦 <span class="val" id="remainDisplay-${pid}">0</span></span>
+                <span>⏱ <span class="val" id="timeDisplay-${pid}">0s</span></span>
+            </div>
+            <div class="card-area" id="cardArea-${pid}"></div>
+            <div class="slot-area" id="slotArea-${pid}"></div>
+            <div class="btn-row" style="margin-top:4px">
+                <button class="btn btn-secondary" onclick="undoLast('${pid}')">↩ 撤回(5)</button>
+                <button class="btn btn-secondary" id="shuffleBtn-${pid}" onclick="shuffleCards('${pid}')">🔀 洗牌(5)</button>
+                <button class="btn btn-hint" onclick="showHintMenu('${pid}')">💡 智能提示</button>
+            </div>
+            <div class="size-control" style="margin-top:4px" id="sizeControl-${pid}">
+                <span>🔍 图标大小</span>
+                <input type="range" min="30" max="72" value="52" oninput="changeIconSize(this.value, '${pid}')">
+                <span class="size-val" id="sizeVal-${pid}">52px</span>
+            </div>
+        `;
+        container.appendChild(panel);
+    });
+
+    // 公共按钮行
+    const btnRow = document.createElement('div');
+    btnRow.style.cssText = 'display:flex;gap:8px;margin-top:6px;justify-content:center';
+    btnRow.innerHTML = `
+        <button class="btn btn-primary" onclick="restartCurrentGame()">🔄 重新开始（双方）</button>
+        <button class="back-btn" onclick="backToMenu()">← 返回菜单</button>
+    `;
+    container.appendChild(btnRow);
+}
+
+// ============ 获取玩家DOM ============
+function getDom(pid, name) {
+    const id = gameMode === 'solo' ? name : `${name}-${pid}`;
+    return document.getElementById(id);
+}
+function getCardArea(pid) { return getDom(pid, 'cardArea'); }
+function getSlotArea(pid) { return getDom(pid, 'slotArea'); }
+function getScoreDisplay(pid) { return getDom(pid, 'scoreDisplay'); }
+function getRemainDisplay(pid) { return getDom(pid, 'remainDisplay'); }
+function getTimeDisplay(pid) { return getDom(pid, 'timeDisplay'); }
+function getThemeTag(pid) { return getDom(pid, 'themeTag'); }
+
+// ============ 随机主题 ============
+function pickRandomTheme(p) {
+    const keys = THEME_KEYS.filter(k => k !== p._themeKey);
+    p._themeKey = keys[Math.floor(Math.random() * keys.length)];
+    p._emojis = THEMES[p._themeKey].emojis;
+    applyThemeBackground(p._themeKey);
+}
+
+// ============ 计时器 ============
+function startPlayerTimer(p, pid) {
+    stopPlayerTimer(p);
+    if (timeMode === 'timed') {
+        p.countdown = timedSeconds;
+        updateTimeDisplay(p, pid);
+        p.timerInterval = setInterval(() => {
+            p.countdown--;
+            updateTimeDisplay(p, pid);
+            if (p.countdown <= 0 && !p.gameOver) {
+                onLose(p, pid, '⏰ 时间到！');
+            }
+        }, 1000);
+    } else {
+        p.timerSec = 0;
+        updateTimeDisplay(p, pid);
+        p.timerInterval = setInterval(() => {
+            p.timerSec++;
+            updateTimeDisplay(p, pid);
+        }, 1000);
+    }
+}
+
+function stopPlayerTimer(p) {
+    if (p.timerInterval) clearInterval(p.timerInterval);
+    p.timerInterval = null;
+}
+
+function updateTimeDisplay(p, pid) {
+    const td = getTimeDisplay(pid);
+    if (!td) return;
+    if (timeMode === 'timed') {
+        const m = Math.floor(p.countdown / 60);
+        const s = p.countdown % 60;
+        td.textContent = `${m}:${String(s).padStart(2,'0')}`;
+        if (p.countdown <= 30) td.classList.add('time-warn');
+        else td.classList.remove('time-warn');
+    } else {
+        td.textContent = p.timerSec + 's';
+        td.classList.remove('time-warn');
+    }
+}
+
+// ============ 30秒无操作智能提示 ============
+function resetIdleTimer(p, pid) {
+    clearIdleTimer(p);
+    clearHint(p, pid);
+    removeBubble(p);
+    p.idleTimer = setTimeout(() => {
+        if (!p.gameOver) showHint(pid);
+    }, 30000);
+}
+function clearIdleTimer(p) {
+    if (p.idleTimer) { clearTimeout(p.idleTimer); p.idleTimer = null; }
+}
+
+// ============ 生成卡片 ============
+function generateCards(p) {
+    const maxTypes = p._emojis.length; // 最多10种
+    const types = Math.min(config.types, maxTypes);
+    const { cardsPerType } = config;
+    const shuffled = [...p._emojis].sort(() => Math.random() - 0.5);
+    const selected = shuffled.slice(0, types);
+    const list = [];
+    selected.forEach(emoji => {
+        for (let i = 0; i < cardsPerType; i++) list.push({ emoji, id: crypto.randomUUID() });
+    });
+    for (let i = list.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [list[i], list[j]] = [list[j], list[i]];
+    }
+    return list;
+}
+
+// ============ 分配层（交错网格） ============
+function assignLayers(cardList) {
+    const { layers } = config;
+    const total = cardList.length;
+    const layered = [];
+    for (let l = 0; l < layers; l++) {
+        const start = l * Math.ceil(total / layers);
+        const end = Math.min(start + Math.ceil(total / layers), total);
+        const layerCards = cardList.slice(start, end);
+        const layerSlots = [];
+        for (let row = 0; row < GLOBAL_ROWS; row++)
+            for (let col = 0; col < GLOBAL_COLS; col++)
+                layerSlots.push({ row, col });
+        for (let i = layerSlots.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [layerSlots[i], layerSlots[j]] = [layerSlots[j], layerSlots[i]];
+        }
+        layerCards.forEach((card, i) => {
+            const slot = layerSlots[i % layerSlots.length];
+            const rc = Math.floor(i / layerSlots.length);
+            layered.push({ ...card, layer: l, baseCol: slot.col, baseRow: slot.row, microX: (rc * 3) % 12, microY: (rc * 2) % 8 });
+        });
+    }
+    return layered;
+}
+
+// ============ 计算卡片位置 ============
+function calcCardPosition(card, cardAreaEl) {
+    const areaW = cardAreaEl.clientWidth;
+    const areaH = cardAreaEl.clientHeight;
+    const pid = cardAreaEl.id.replace('cardArea-', '') || 'p0';
+    const { w: cardW, h: cardH } = getCardSize(pid);
+    const offsetUnitX = cardW * 0.7;
+    const offsetUnitY = cardH * 0.7;
+    const layerOffsets = [
+        { dx: 0, dy: 0 }, { dx: 0.8, dy: 0.8 }, { dx: -0.6, dy: 0.7 },
+        { dx: 0.7, dy: -0.6 }, { dx: -0.5, dy: -0.5 }, { dx: 0.5, dy: 0.4 },
+    ];
+    const off = layerOffsets[card.layer % layerOffsets.length];
+    const mx = 14, my = 12;
+    const aw = areaW - mx * 2 - cardW;
+    const ah = areaH - my * 2 - cardH;
+    const cs = aw / (GLOBAL_COLS - 1);
+    const rs = ah / (GLOBAL_ROWS - 1);
+    const x = mx + card.baseCol * cs + off.dx * offsetUnitX + (card.microX || 0);
+    const y = my + card.baseRow * rs + off.dy * offsetUnitY + (card.microY || 0);
+    return { x: Math.min(Math.max(x, 0), areaW - cardW - 3), y: Math.min(Math.max(y, 0), areaH - cardH - 3) };
+}
+
+// ============ 遮挡检测 ============
+// 规则：卡片被遮挡 = 有任何"显示在上方"且"未移除"的卡片与它有重叠
+// "显示在上方"包括：
+//   1. 更高层（layer更大）的卡片
+//   2. 同一层但在p.cards数组中位置更靠后的卡片（渲染时z-index更高，视觉上盖住前面的）
+// 只要上层/前面卡片消除后完全露出下层/后面卡片（无任何重叠），下层/后面卡片即可点击
+function isCardBlocked(card, allCards, cardAreaEl) {
+    if (card.removed) return true;
+    const pid = cardAreaEl.id.replace('cardArea-', '') || 'p0';
+    const { w: cardW, h: cardH } = getCardSize(pid);
+    const cardIdx = allCards.indexOf(card);
+
+    for (const other of allCards) {
+        if (other.removed || other.id === card.id) continue;
+        
+        // 判断other是否"显示在card上方"
+        if (other.layer < card.layer) continue;
+        if (other.layer === card.layer) {
+            // 同层：只有原始索引更大的（渲染时z-index更高）才可能盖住当前卡片
+            const otherIdx = allCards.indexOf(other);
+            if (otherIdx <= cardIdx) continue;
+        }
+
+        const p1 = calcCardPosition(card, cardAreaEl);
+        const p2 = calcCardPosition(other, cardAreaEl);
+        // 计算两张卡片的重叠区域
+        const ox = Math.max(0, Math.min(p1.x + cardW, p2.x + cardW) - Math.max(p1.x, p2.x));
+        const oy = Math.max(0, Math.min(p1.y + cardH, p2.y + cardH) - Math.max(p1.y, p2.y));
+        // 只要有重叠，就视为被遮挡（必须完全露出才能点击）
+        if (ox > 0 && oy > 0) return true;
+    }
+    return false;
+}
+
+// ============ 渲染 ============
+function renderCards(p, pid) {
+    clearHint(p, pid);
+    const area = getCardArea(pid);
+    if (!area) return;
+    area.querySelectorAll('.card').forEach(el => el.remove());
+    // 排序：先按layer升序，同层按p.cards原始顺序（后面=z-index更高=显示在上面）
+    const sorted = [...p.cards].sort((a, b) => {
+        if (a.layer !== b.layer) return a.layer - b.layer;
+        return p.cards.indexOf(a) - p.cards.indexOf(b);
+    });
+    const { w: cardW, h: cardH } = getCardSize(pid);
+    sorted.forEach((card, idx) => {
+        if (card.removed) return;
+        const { x, y } = calcCardPosition(card, area);
+        const blocked = isCardBlocked(card, p.cards, area);
+        const el = document.createElement('div');
+        let cls = `card layer-${card.layer}`;
+        if (blocked) cls += ' blocked';
+        if (gameMode === 'dual') cls += pid === 'p0' ? ' red-card' : ' blue-card';
+        el.className = cls;
+        el.style.left = x + 'px'; el.style.top = y + 'px';
+        el.style.width = cardW + 'px'; el.style.height = cardH + 'px';
+        el.style.fontSize = (cardW * 0.035) + 'em';
+        el.style.borderRadius = Math.round(cardW * 0.15) + 'px';
+        el.style.zIndex = idx + 1; // 明确设置z-index，后面渲染的卡片显示在上层
+        el.textContent = card.emoji; el.dataset.id = card.id;
+        if (!blocked) el.addEventListener('click', e => { e.stopPropagation(); onCardClick(p, pid, card); });
+        area.appendChild(el);
+    });
+    const remain = p.cards.filter(c => !c.removed).length;
+    const rd = getRemainDisplay(pid);
+    if (rd) rd.textContent = remain;
+    const sa = getSlotArea(pid);
+    if (sa) {
+        if (p.slotCards.length >= getSlotMax() - 2 && p.slotCards.length < getSlotMax() && !p.gameOver) sa.classList.add('warning');
+        else sa.classList.remove('warning');
+    }
+    if (remain === 0 && p.slotCards.length === 0 && !p.gameOver) onWin(p, pid);
+}
+
+function renderSlots(p, pid) {
+    const sa = getSlotArea(pid);
+    if (!sa) return;
+    sa.querySelectorAll('.slot-item, .slot-placeholder').forEach(el => el.remove());
+    const { w: sW, h: sH } = getSlotSize(pid);
+    sa.style.height = Math.round(sH + 24) + 'px';
+    p.slotCards.forEach((c, i) => {
+        const el = document.createElement('div');
+        el.className = 'slot-item'; el.textContent = c.emoji; el.dataset.slotIndex = i;
+        el.style.width = sW + 'px'; el.style.height = sH + 'px';
+        el.style.fontSize = (sW * 0.036) + 'em';
+        sa.appendChild(el);
+    });
+    for (let i = 0; i < getSlotMax() - p.slotCards.length; i++) {
+        const el = document.createElement('div'); el.className = 'slot-placeholder'; sa.appendChild(el);
+        el.style.width = sW + 'px'; el.style.height = sH + 'px';
+    }
+}
+
+// ============ 点击卡片 ============
+function onCardClick(p, pid, card) {
+    if (p.gameOver || card.removed) return;
+    const area = getCardArea(pid);
+    if (isCardBlocked(card, p.cards, area)) return;
+
+    playSfx('click'); // 点击音效
+    resetIdleTimer(p, pid);
+    clearHint(p, pid);
+    removeBubble(p);
+
+    p.history.push({ cardId: card.id, slotSnapshot: p.slotCards.map(c => c.id) });
+    card.removed = true;
+    p.slotCards.push({ ...card });
+    checkMatch(p, pid);
+
+    if (p.slotCards.length >= getSlotMax() && !p.gameOver) {
+        const cm = {};
+        p.slotCards.forEach(c => { cm[c.emoji] = (cm[c.emoji] || 0) + 1; });
+        if (Object.values(cm).some(c => c >= 3)) {
+            checkMatch(p, pid);
+            renderCards(p, pid); renderSlots(p, pid);
+            return;
+        }
+        // 立即标记游戏结束，防止350ms延迟内继续点击
+        p.gameOver = true;
+        renderCards(p, pid); renderSlots(p, pid);
+        setTimeout(() => onLose(p, pid, '😢 槽位已满'), 350);
+        return;
+    }
+    renderCards(p, pid); renderSlots(p, pid);
+}
+
+// ============ 三消 ============
+function checkMatch(p, pid) {
+    let matched = false;
+    const cm = {};
+    p.slotCards.forEach(c => { cm[c.emoji] = (cm[c.emoji] || 0) + 1; });
+    for (const [emoji, count] of Object.entries(cm)) {
+        if (count >= 3) {
+            playSfx('match'); // 消除音效
+            let removed = 0;
+            p.slotCards = p.slotCards.filter(c => {
+                if (c.emoji === emoji && removed < 3) { removed++; return false; }
+                return true;
+            });
+            p.score += 3;
+            const sd = getScoreDisplay(pid);
+            if (sd) sd.textContent = p.score;
+            showMatchEffect(emoji, pid);
+            matched = true;
+        }
+    }
+    if (matched) checkMatch(p, pid);
+}
+
+function showMatchEffect(emoji, pid) {
+    const area = getCardArea(pid);
+    if (!area) return;
+    const effect = document.createElement('div');
+    effect.className = 'match-effect';
+    effect.textContent = '✨' + emoji + ' 消除!';
+    const rect = area.getBoundingClientRect();
+    effect.style.left = (rect.left + rect.width / 2 - 45) + 'px';
+    effect.style.top = (rect.top + rect.height / 2) + 'px';
+    document.body.appendChild(effect);
+    setTimeout(() => effect.remove(), 800);
+}
+
+// ============ AI智能提示系统 ============
+// 全新AI算法：
+// 1. 槽内有卡牌：优先提示槽内数量最多的图标 → 按槽位顺序（第一位→第二位...）
+// 2. 槽内无卡牌：使用前向搜索模拟，计算最优消除路径，一步一步通向全部消除
+
+// 核心数据结构：游戏快照，用于模拟消除过程
+function clonePlayerState(p) {
+    return {
+        cards: p.cards.map(c => ({...c})),
+        slotCards: p.slotCards.map(c => ({...c})),
+        score: p.score,
+        gameOver: p.gameOver,
+        _themeKey: p._themeKey,
+        _emojis: p._emojis,
+    };
+}
+
+// 在模拟状态下检测遮挡（使用与真实渲染一致的逻辑）
+function simIsCardBlocked(card, allCards) {
+    if (card.removed) return true;
+    const cardIdx = allCards.indexOf(card);
+    for (const other of allCards) {
+        if (other.removed || other.id === card.id) continue;
+        if (other.layer < card.layer) continue;
+        if (other.layer === card.layer) {
+            const otherIdx = allCards.indexOf(other);
+            if (otherIdx <= cardIdx) continue;
+        }
+        // 简化碰撞检测：同列且行偏移<=1视为重叠
+        const colDist = Math.abs((card.baseCol + (card.microX || 0) / 10) - (other.baseCol + (other.microX || 0) / 10));
+        const rowDist = Math.abs((card.baseRow + (card.microY || 0) / 10) - (other.baseRow + (other.microY || 0) / 10));
+        if (colDist < 1.2 && rowDist < 1.2) return true;
+    }
+    return false;
+}
+
+// 获取模拟状态下所有可点击的卡片
+function simGetClickableCards(state) {
+    return state.cards.filter(c => !c.removed && !simIsCardBlocked(c, state.cards));
+}
+
+// 模拟点击一张卡片，返回新的状态（深拷贝）
+function simClickCard(state, card) {
+    const ns = {
+        cards: state.cards.map(c => ({...c})),
+        slotCards: state.slotCards.map(c => ({...c})),
+        score: state.score,
+        gameOver: state.gameOver,
+    };
+    // 找到并移除卡片
+    const target = ns.cards.find(c => c.id === card.id);
+    if (!target || target.removed) return null;
+    target.removed = true;
+    ns.slotCards.push({...target});
+    // 自动消除
+    simCheckMatch(ns);
+    // 检查是否失败
+    const slotMax = getSlotMax();
+    if (ns.slotCards.length >= slotMax) {
+        const cm = {};
+        ns.slotCards.forEach(c => { cm[c.emoji] = (cm[c.emoji] || 0) + 1; });
+        if (!Object.values(cm).some(c => c >= 3)) {
+            ns.gameOver = true;
+        }
+    }
+    return ns;
+}
+
+// 模拟三消
+function simCheckMatch(state) {
+    let matched = true;
+    while (matched) {
+        matched = false;
+        const cm = {};
+        state.slotCards.forEach(c => { cm[c.emoji] = (cm[c.emoji] || 0) + 1; });
+        for (const [emoji, count] of Object.entries(cm)) {
+            if (count >= 3) {
+                let removed = 0;
+                state.slotCards = state.slotCards.filter(c => {
+                    if (c.emoji === emoji && removed < 3) { removed++; return false; }
+                    return true;
+                });
+                state.score += 3;
+                matched = true;
+            }
+        }
+    }
+}
+
+// 模拟点击后的"连锁反应"：消除一组后，可能露出新的可点击卡片
+// 返回新露出的卡片列表
+function simGetRevealedCards(prevState, newState) {
+    const prevClickable = new Set(simGetClickableCards(prevState).map(c => c.id));
+    const newClickable = simGetClickableCards(newState);
+    return newClickable.filter(c => !prevClickable.has(c.id));
+}
+
+// ============ 槽内有卡牌的智能策略 ============
+// 规则1：优先提示槽内数量最多的图标
+// 规则2：按槽内顺序（第一位→第二位→...），在场上找对应图标
+// 规则3：如果场上没有该图标，跳过找下一个
+function findBestCardWithSlots(p, pid) {
+    const area = getCardArea(pid);
+    
+    // 统计槽内各图标的数量
+    const slotCountMap = {};
+    p.slotCards.forEach(c => { slotCountMap[c.emoji] = (slotCountMap[c.emoji] || 0) + 1; });
+    
+    // 策略1：按数量降序排列，找场上可点击的对应图标
+    const sortedByCount = Object.entries(slotCountMap)
+        .sort((a, b) => b[1] - a[1])
+        .map(([e]) => e);
+    
+    for (const emoji of sortedByCount) {
+        const target = p.cards.find(x => !x.removed && x.emoji === emoji && !isCardBlocked(x, p.cards, area));
+        if (target) return { card: target, reason: 'count', slotCount: slotCountMap[emoji] };
+    }
+    
+    // 策略2：按槽位顺序（第一位→第二位→...），在场上找对应图标
+    for (let i = 0; i < p.slotCards.length; i++) {
+        const emoji = p.slotCards[i].emoji;
+        const target = p.cards.find(x => !x.removed && x.emoji === emoji && !isCardBlocked(x, p.cards, area));
+        if (target) return { card: target, reason: 'position', slotPos: i + 1, slotCount: slotCountMap[emoji] || 1 };
+    }
+    
+    // 策略3：槽内有牌但场上找不到对应可点击卡片 → 提示场上数量最多的
+    const fieldBest = findMostFrequentOnField(p, area);
+    if (fieldBest) return { card: fieldBest, reason: 'fallback', slotCount: 0 };
+    
+    return null;
+}
+
+// ============ 槽内无卡牌的智能策略：前向搜索最优消除路径 ============
+// 使用BFS/贪心+前瞻搜索，找到通向全部消除的最优步骤
+function findBestPathToWin(p, pid) {
+    const area = getCardArea(pid);
+    const initialState = {
+        cards: p.cards.map(c => ({...c})),
+        slotCards: [],
+        score: 0,
+        gameOver: false,
+    };
+    
+    const allRemaining = initialState.cards.filter(c => !c.removed);
+    const totalCards = allRemaining.length;
+    
+    // 如果卡片太少，直接返回数量最多的
+    if (totalCards === 0) return null;
+    if (totalCards <= 6) {
+        const best = findMostFrequentOnField(p, area);
+        return best ? { card: best, reason: 'path_empty', pathLength: 0 } : null;
+    }
+    
+    // 前瞻搜索：使用贪心+回溯策略
+    // 对每个可点击的卡片，模拟点击后看结果
+    const clickable = simGetClickableCards(initialState);
+    if (clickable.length === 0) return null;
+    
+    // 对每个候选卡片评分
+    const candidates = [];
+    for (const card of clickable) {
+        let score = 0;
+        const nextState = simClickCard(initialState, card);
+        if (!nextState || nextState.gameOver) {
+            // 这一步会导致失败（槽满且无法消除），降低评分但不要完全排除
+            score -= 100;
+        } else {
+            // 检查是否直接获胜
+            const remaining = nextState.cards.filter(c => !c.removed).length;
+            if (remaining === 0 && nextState.slotCards.length === 0) {
+                score += 10000; // 直接获胜，最高分
+            } else {
+                // 评估消除后的状态
+                // 1. 消除得分
+                score += (initialState.score - nextState.score) * 10; // 消除越多越好
+                // 2. 槽位占用少更好
+                score += (7 - nextState.slotCards.length) * 50;
+                // 3. 新露出的可点击卡片越多越好
+                const newClickable = simGetClickableCards(nextState);
+                score += newClickable.length * 30;
+                // 4. 消除后剩余的卡牌总数
+                score -= remaining * 2;
+                // 5. 槽内同图标聚集度（易于后续消除）
+                const slotMap = {};
+                nextState.slotCards.forEach(c => { slotMap[c.emoji] = (slotMap[c.emoji] || 0) + 1; });
+                for (const [e, cnt] of Object.entries(slotMap)) {
+                    if (cnt >= 2) score += cnt * 40; // 槽内成对很好
+                }
+            }
+        }
+        
+        // 6. 场上该图标的可点击数量（越多越容易凑齐）
+        const fieldCount = simGetClickableCards(initialState).filter(c => c.emoji === card.emoji).length;
+        score += fieldCount * 15;
+        
+        // 7. 该图标在场上总剩余数量
+        const totalFieldCount = initialState.cards.filter(c => !c.removed && c.emoji === card.emoji).length;
+        score += totalFieldCount * 5;
+        
+        candidates.push({ card, score, emoji: card.emoji });
+    }
+    
+    // 按评分降序排列
+    candidates.sort((a, b) => b.score - a.score);
+    
+    if (candidates.length > 0) {
+        const best = candidates[0];
+        // 验证该卡片在真实游戏中可点击
+        const realCard = p.cards.find(c => c.id === best.card.id && !c.removed);
+        if (realCard && !isCardBlocked(realCard, p.cards, area)) {
+            // 计算路径长度（粗略估算：剩余卡片/3）
+            const pathEstimate = Math.ceil(allRemaining.length / 3);
+            return { card: realCard, reason: 'path', pathLength: pathEstimate, score: best.score };
+        }
+    }
+    
+    // 降级：返回数量最多的
+    const fallback = findMostFrequentOnField(p, area);
+    return fallback ? { card: fallback, reason: 'path_fallback', pathLength: 0 } : null;
+}
+
+// 辅助：找场上（未被遮挡的）数量最多的图标
+function findMostFrequentOnField(p, area) {
+    const rc = {};
+    p.cards.filter(x => !x.removed).forEach(x => { rc[x.emoji] = (rc[x.emoji] || 0) + 1; });
+    let be = null, bc = 0;
+    for (const [e, c] of Object.entries(rc)) { if (c > bc) { bc = c; be = e; } }
+    if (be) {
+        const t = p.cards.find(x => !x.removed && x.emoji === be && !isCardBlocked(x, p.cards, area));
+        if (t) return t;
+    }
+    return p.cards.find(x => !x.removed && !isCardBlocked(x, p.cards, area)) || null;
+}
+
+// ============ 统一智能提示入口 ============
+function findBestCard(p, pid) {
+    // 槽内有卡牌：使用槽位感知策略
+    if (p.slotCards.length > 0) {
+        return findBestCardWithSlots(p, pid);
+    }
+    // 槽内无卡牌：使用前向搜索最优路径策略
+    return findBestPathToWin(p, pid);
+}
+
+// ============ 智能提示选择弹窗 ============
+let hintMenuPid = 'p0';
+function showHintMenu(pid) {
+    hintMenuPid = pid;
+    const overlay = document.getElementById('hintMenuOverlay');
+    if (overlay) overlay.style.display = 'flex';
+}
+function closeHintMenu(e) {
+    if (e && e.target !== document.getElementById('hintMenuOverlay')) return;
+    const overlay = document.getElementById('hintMenuOverlay');
+    if (overlay) overlay.style.display = 'none';
+}
+function chooseHintOption(option) {
+    const overlay = document.getElementById('hintMenuOverlay');
+    if (overlay) overlay.style.display = 'none';
+    if (option === 'flash') {
+        // 卡牌闪烁提示：调用原有智能提示
+        showHint(hintMenuPid);
+    } else if (option === 'zoom') {
+        // 缩小图标：调到30px最小值
+        changeIconSize(30, hintMenuPid);
+        // 同步更新滑块位置
+        const slider = document.getElementById('sizeControl-' + hintMenuPid)?.querySelector('input[type=range]');
+        if (slider) slider.value = 30;
+        const valEl = document.getElementById('sizeVal-' + hintMenuPid);
+        if (valEl) valEl.textContent = '30px';
+    }
+}
+
+function showHint(pid) {
+    const p = players[pid];
+    if (!p || p.gameOver) return;
+    const result = findBestCard(p, pid);
+    if (!result || !result.card) return;
+    
+    const best = result.card;
+    clearHint(p, pid);
+    p.hintedCardIds = [best.id];
+    const area = getCardArea(pid);
+    if (!area) return;
+
+    const slotCount = p.slotCards.filter(c => c.emoji === best.emoji).length;
+
+    // 闪烁提示：闪烁两次（亮→灭→亮→灭）
+    const targetEl = area.querySelector(`.card[data-id="${best.id}"]`);
+    const slotEls = [];
+    if (slotCount > 0) {
+        const sa = getSlotArea(pid);
+        if (sa) {
+            sa.querySelectorAll('.slot-item').forEach(el => {
+                const idx = parseInt(el.dataset.slotIndex);
+                if (!isNaN(idx) && p.slotCards[idx] && p.slotCards[idx].emoji === best.emoji)
+                    slotEls.push(el);
+            });
+        }
+    }
+
+    function flashOn() {
+        if (targetEl) targetEl.classList.add('hint');
+        slotEls.forEach(el => el.style.boxShadow = '0 0 12px rgba(255,215,0,.8)');
+    }
+    function flashOff() {
+        if (targetEl) targetEl.classList.remove('hint');
+        slotEls.forEach(el => el.style.boxShadow = '');
+    }
+
+    // 闪烁序列：亮0.35s → 灭0.25s → 亮0.35s → 灭
+    flashOn();
+    setTimeout(() => {
+        flashOff();
+        setTimeout(() => {
+            flashOn();
+            setTimeout(() => {
+                flashOff();
+            }, 350);
+        }, 250);
+    }, 350);
+
+    showBubble(p, pid, best, slotCount, result);
+    setTimeout(() => { clearHint(p, pid); removeBubble(p); }, 3500);
+}
+
+function clearHint(p, pid) {
+    p.hintedCardIds = [];
+    const area = getCardArea(pid); if (area) area.querySelectorAll('.card.hint').forEach(el => el.classList.remove('hint'));
+    const sa = getSlotArea(pid); if (sa) sa.querySelectorAll('.slot-item').forEach(el => el.style.boxShadow = '');
+}
+
+function showBubble(p, pid, card, slotCount, hintResult) {
+    removeBubble(p);
+    const area = getCardArea(pid); if (!area) return;
+    const cardEl = area.querySelector(`.card[data-id="${card.id}"]`);
+    if (!cardEl) return;
+    const cr = cardEl.getBoundingClientRect(), ar = area.getBoundingClientRect();
+    const b = document.createElement('div'); b.className = 'hint-bubble'; b.id = 'hintBubble-' + pid;
+    
+    // 根据策略生成不同的提示消息
+    let msg = '';
+    if (hintResult) {
+        if (hintResult.reason === 'count') {
+            if (slotCount === 2) msg = '💡 槽内已有2张！点这个凑齐3个消除~';
+            else msg = `💡 槽内${hintResult.slotCount}张${card.emoji}，优先凑齐！`;
+        } else if (hintResult.reason === 'position') {
+            msg = `💡 槽位第${hintResult.slotPos}张是${card.emoji}，优先消除！`;
+        } else if (hintResult.reason === 'path') {
+            msg = `🧠 智能算路：约${hintResult.pathLength}步可通关，先点这个！`;
+        } else if (hintResult.reason === 'path_empty') {
+            msg = '🧠 剩余不多，按最优路径消除！';
+        } else if (hintResult.reason === 'fallback') {
+            msg = '💡 槽内图标暂不可点，先清这张数量最多的~';
+        } else {
+            msg = slotCount === 2 ? '💡 点这个！凑齐3个消除~' : slotCount === 1 ? '💡 再找2个就能消！' : '💡 这张数量最多~';
+        }
+    } else {
+        msg = slotCount === 2 ? '💡 点这个！凑齐3个消除~' : slotCount === 1 ? '💡 再找2个就能消！' : '💡 这张数量最多~';
+    }
+    
+    b.textContent = msg;
+    b.style.left = Math.max(5, Math.min(cr.left - ar.left + cr.width / 2 - 90, area.clientWidth - 190)) + 'px';
+    b.style.top = (cr.top - ar.top - 48) + 'px';
+    area.appendChild(b); p.bubbleEl = b;
+}
+
+function removeBubble(p) {
+    if (p.bubbleEl) { p.bubbleEl.remove(); p.bubbleEl = null; }
+}
+
+// ============ 撤回 ============
+function undoLast(pid) {
+    const p = players[pid]; if (!p || p.gameOver || p.history.length === 0) return;
+    if (p.undoRemaining <= 0) return; // 撤回次数用尽
+    p.undoRemaining--;
+    updateUndoButton(pid);
+    resetIdleTimer(p, pid); clearHint(p, pid); removeBubble(p);
+    const last = p.history.pop();
+    const card = p.cards.find(c => c.id === last.cardId);
+    if (card) card.removed = false;
+    p.slotCards = p.cards.filter(c => last.slotSnapshot.includes(c.id)).map(c => ({ ...c }));
+    renderCards(p, pid); renderSlots(p, pid);
+}
+
+function updateUndoButton(pid) {
+    // 找到撤回按钮（单人面板用 p0 的按钮id不同，双人面板有独立按钮）
+    const p = players[pid];
+    if (!p) return;
+    // 单人和双人的撤回按钮都是内联 onclick="undoLast('pid')"，没有特定id
+    // 我们需要找到对应面板的撤回按钮
+    const panel = document.getElementById(`panel-${pid}`);
+    let btn = null;
+    if (panel) {
+        btn = panel.querySelector('button.btn-secondary');
+    } else {
+        // 单人模式：在 soloPanel 中找
+        const soloPanel = document.getElementById('soloPanel');
+        if (soloPanel) {
+            const buttons = soloPanel.querySelectorAll('.btn-row button');
+            for (const b of buttons) {
+                if (b.textContent.includes('撤回')) { btn = b; break; }
+            }
+        }
+    }
+    if (btn) {
+        if (p.undoRemaining <= 0) {
+            btn.textContent = '↩ 已用尽';
+            btn.style.opacity = '0.45';
+            btn.style.pointerEvents = 'none';
+        } else {
+            btn.textContent = `↩ 撤回(${p.undoRemaining})`;
+            btn.style.opacity = '1';
+            btn.style.pointerEvents = '';
+        }
+    }
+}
+
+// ============ 洗牌 ============
+function shuffleCards(pid) {
+    const p = players[pid]; if (!p || p.gameOver) return;
+    if (p.shuffleRemaining <= 0) return; // 洗牌次数用尽
+    p.shuffleRemaining--;
+    updateShuffleButton(pid);
+    resetIdleTimer(p, pid); clearHint(p, pid); removeBubble(p);
+    const active = p.cards.filter(c => !c.removed);
+    const removed = p.cards.filter(c => c.removed);
+    const { layers } = config;
+    const perLayer = Math.ceil(active.length / layers);
+    for (let l = 0; l < layers; l++) {
+        const start = l * perLayer, end = Math.min(start + perLayer, active.length);
+        const lc = active.slice(start, end);
+        const slots = [];
+        for (let r = 0; r < GLOBAL_ROWS; r++) for (let c = 0; c < GLOBAL_COLS; c++) slots.push({ row: r, col: c });
+        for (let i = slots.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [slots[i], slots[j]] = [slots[j], slots[i]]; }
+        lc.forEach((card, i) => {
+            card.layer = l;
+            const s = slots[i % slots.length];
+            card.baseCol = s.col; card.baseRow = s.row;
+            card.microX = (Math.floor(i / slots.length) * 3) % 12;
+            card.microY = (Math.floor(i / slots.length) * 2) % 8;
+        });
+    }
+    p.cards = [...active, ...removed];
+    renderCards(p, pid);
+}
+
+function updateShuffleButton(pid) {
+    const btn = document.getElementById(`shuffleBtn-${pid}`);
+    if (!btn) return;
+    const p = players[pid];
+    if (!p) return;
+    if (p.shuffleRemaining <= 0) {
+        btn.textContent = '🔀 已用尽';
+        btn.style.opacity = '0.45';
+        btn.style.pointerEvents = 'none';
+    } else {
+        btn.textContent = `🔀 洗牌(${p.shuffleRemaining})`;
+        btn.style.opacity = '1';
+        btn.style.pointerEvents = '';
+    }
+}
+
+// ============ 胜利/失败 ============
+function onWin(p, pid) {
+    playSfx('win'); // 胜利音效
+    p.gameOver = true; stopPlayerTimer(p); clearIdleTimer(p); clearHint(p, pid); removeBubble(p);
+    const area = getCardArea(pid); if (!area) return;
+    // 清除所有旧卡片和旧overlay，防止穿模
+    area.querySelectorAll('.card,.overlay').forEach(el => el.remove());
+    const timeStr = timeMode === 'timed' ? `${timedSeconds - p.countdown}秒` : `${p.timerSec}秒`;
+    const label = gameMode === 'dual' ? (pid === 'p0' ? '🔴 红方' : '🔵 蓝方') : '';
+
+    // ----- 积分系统（双人模式不摄入总分）-----
+    let pointsEarned = 0;
+    let streakInfo = '';
+    if (gameMode !== 'dual') {
+        if (timeMode === 'pass') {
+            // 通关模式：每关+2分，连胜处理
+            passWinStreak++;
+            pointsEarned = awardPoints('pass');
+            awardPassModePoints();
+            if (passWinStreak >= 3) {
+                streakInfo = `<div class="sub-info" style="color:#FFD700;">🔥 连胜${passWinStreak}关！额外加分</div>`;
+            }
+        } else {
+            // 简单/普通/困难模式
+            pointsEarned = awardPoints(gameMode, currentDifficulty);
+        }
+        updatePointsDisplay();
+    }
+    // ----- 积分系统 END -----
+
+    // 通关模式：记录关卡成绩
+    if (timeMode === 'pass') {
+        passModeState.totalScore += p.score;
+        passModeState.totalTime += p.timerSec;
+        passModeState.clearedLevels.add(passModeState.currentLevel);
+        savePassProgress(passModeState.clearedLevels);
+        // 记录当前用户的本关通关时间排名
+        if (currentUser) {
+            savePassLevelRecord(passModeState.currentLevel, currentUser.nickname, currentUser.avatar, currentUser.avatarType || 'emoji', p.timerSec);
+        }
+    }
+
+    // 单人模式/通关模式：立即记录游玩记录
+    if (gameMode === 'solo') {
+        recordGameResult('win', timeMode === 'pass' ? `通关第${passModeState.currentLevel}关` : '');
+    }
+
+    const overlay = document.createElement('div'); overlay.className = 'overlay';
+    if (timeMode === 'pass') {
+        // ===== 通关模式：使用全局遮罩，凸显结果界面 =====
+        const isLastLevel = passModeState.currentLevel >= TOTAL_PASS_LEVELS;
+        const levelCfg = getPassLevelConfig(passModeState.currentLevel);
+        const levelName = levelCfg.name;
+        const levelNum = passModeState.currentLevel;
+        
+        // 生成本关通关排名HTML
+        let rankingHTML = '';
+        if (currentUser) {
+            const records = getPassLevelRecords(levelNum);
+            if (records.length > 0) {
+                const topRecords = records.slice(0, 5);
+                const myRank = records.findIndex(r => r.nickname === currentUser.nickname) + 1;
+                rankingHTML = `
+                    <div class="pass-rank-section">
+                        <div class="pass-rank-title">🏆 第${levelNum}关通关排名</div>
+                        <div class="pass-rank-list">
+                            ${topRecords.map((r, i) => {
+                                const rank = i + 1;
+                                let medal = '';
+                                if (rank === 1) medal = '🥇';
+                                else if (rank === 2) medal = '🥈';
+                                else if (rank === 3) medal = '🥉';
+                                else medal = rank;
+                                const isMe = r.nickname === currentUser.nickname;
+                                const av = (r.avatarType === 'image' && r.avatar) 
+                                    ? `<img src="${r.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">` 
+                                    : (r.avatar || '👤');
+                                return `
+                                    <div class="pass-rank-item${isMe ? ' me' : ''}">
+                                        <span class="pri">${medal}</span>
+                                        <span class="pra-avatar">${av}</span>
+                                        <span class="pra-name">${r.nickname}${isMe ? '(我)' : ''}</span>
+                                        <span class="pra-time">${r.time}秒</span>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        ${myRank > 0 ? `<div class="pass-rank-footer">📊 你的排名：第 <b>${myRank}</b> 名 / 共 ${records.length} 人通关</div>` : ''}
+                    </div>
+                `;
+            }
+        }
+        
+        // 构建通关结果卡片内容
+        let cardHTML = `
+            <div class="pr-result-icon">🎉</div>
+            <div class="pr-result-text win">${levelName} 通过！</div>
+            <div class="pr-sub">⏱ ${p.timerSec}秒 | 🏆 消除${p.score}次</div>
+            <div class="pr-sub highlight">⭐ +${pointsEarned} 积分 (通关分:${passModePoints} | 总分:${totalPoints})</div>
+            ${streakInfo ? `<div class="pr-streak">${streakInfo.replace('sub-info','pr-streak')}</div>` : ''}
+            ${rankingHTML}
+            <div class="pr-divider"></div>
+            <div class="pr-btn-row">
+                ${isLastLevel
+                    ? `<button class="pr-btn pr-btn-secondary" onclick="hidePassResult(); backToPassLevels()">📋 关卡列表</button>
+                       <button class="pr-btn pr-btn-primary" onclick="hidePassResult(); retryPassLevel('${pid}')">🔄 重新挑战</button>
+                       <button class="pr-btn pr-btn-ghost" onclick="hidePassResult(); backToMenu()">🏠 返回菜单</button>`
+                    : `<button class="pr-btn pr-btn-primary" onclick="hidePassResult(); nextPassLevel('${pid}')">▶ 下一关</button>
+                       <button class="pr-btn pr-btn-secondary" onclick="hidePassResult(); backToPassLevels()">📋 关卡列表</button>
+                       <button class="pr-btn pr-btn-ghost" onclick="hidePassResult(); backToMenu()">🏠 返回菜单</button>`
+                }
+            </div>`;
+        
+        // 最后一关额外信息
+        if (isLastLevel) {
+            cardHTML = cardHTML.replace('<div class="pr-divider"></div>', `
+                <div class="pr-sub highlight" style="margin-top:8px;">🎊 恭喜！你已通过全部${TOTAL_PASS_LEVELS}关！</div>
+                <div class="pr-sub" style="color:rgba(255,255,255,.65);">🏆 总消除${passModeState.totalScore}次 | ⏱ 总用时${formatTotalTime(passModeState.totalTime)}</div>
+                <div class="pr-sub highlight" style="font-size:.85em;">✨ 敬请期待更多内容 ✨</div>
+                <div class="pr-divider"></div>
+            `);
+        }
+        
+        // 显示全局通关结果遮罩
+        const resultCard = document.getElementById('passResultCard');
+        const resultOverlay = document.getElementById('passResultOverlay');
+        if (resultCard && resultOverlay) {
+            resultCard.innerHTML = cardHTML;
+            resultOverlay.style.display = 'flex';
+            // 点击遮罩空白处不关闭，强制用户点按钮操作
+        }
+    } else {
+        overlay.innerHTML = `
+            <div class="result-text win">🎉 ${label}通关！</div>
+            <div class="sub-info">⏱ ${timeStr} | 🏆 消除${p.score}次</div>
+            ${gameMode !== 'dual' ? `<div class="sub-info" style="color:#FFD700;">⭐ +${pointsEarned} 积分 (总分:${totalPoints})</div>` : ''}
+            <button onclick="this.parentElement.remove(); restartPlayer('${pid}')">🔄 再来一局</button>
+        `;
+        // 阻止overlay上的点击事件穿透到下层卡片
+        overlay.addEventListener('click', e => e.stopPropagation());
+        area.appendChild(overlay);
+    }
+
+    // 双人模式：一方通关，另一方立即判负
+    if (gameMode === 'dual') {
+        const otherPid = pid === 'p0' ? 'p1' : 'p0';
+        const otherPlayer = players[otherPid];
+        if (!otherPlayer.gameOver) {
+            const winnerLabel = pid === 'p0' ? '🔴 红方' : '🔵 蓝方';
+            onLose(otherPlayer, otherPid, `${winnerLabel}已通关，你失败了！`);
+        }
+        checkDualGameEnd();
+    }
+}
+
+function onLose(p, pid, reason) {
+    playSfx('lose'); // 失败音效
+    p.gameOver = true; stopPlayerTimer(p); clearIdleTimer(p); clearHint(p, pid); removeBubble(p);
+    const area = getCardArea(pid); if (!area) return;
+    // 清除所有旧卡片和旧overlay，防止穿模
+    area.querySelectorAll('.card,.overlay').forEach(el => el.remove());
+    const label = gameMode === 'dual' ? (pid === 'p0' ? '🔴 红方' : '🔵 蓝方') : '';
+
+    // 单人模式/通关模式：立即记录游玩记录
+    if (gameMode === 'solo') {
+        recordGameResult('lose', reason);
+    }
+
+    const overlay = document.createElement('div'); overlay.className = 'overlay';
+    if (timeMode === 'pass') {
+        // ===== 通关模式失败：使用全局遮罩，凸显结果界面 =====
+        const levelCfg = getPassLevelConfig(passModeState.currentLevel);
+        const levelName = levelCfg.name;
+        const cheers = [
+            '💪 加油，别灰心！下次一定能过！',
+            '🌟 失败是成功之母，再试一次吧！',
+            '🔥 差一点就成功了！继续努力！',
+            '🍀 运气也是实力的一部分，再来一局！',
+            '🎯 每一次尝试都让你更接近胜利！',
+            '💡 换个策略试试，也许能行！',
+            '🌈 别放弃，胜利就在下一次！',
+        ];
+        const cheer = cheers[Math.floor(Math.random() * cheers.length)];
+        
+        const cardHTML = `
+            <div class="pr-result-icon">😢</div>
+            <div class="pr-result-text lose">${reason}</div>
+            <div class="pr-sub">${levelName} | 🏆 消除${p.score}次</div>
+            <div class="pr-sub highlight" style="font-size:.95em;margin:8px 0;">${cheer}</div>
+            <div class="pr-divider"></div>
+            <div class="pr-btn-row">
+                <button class="pr-btn pr-btn-primary" onclick="hidePassResult(); retryPassLevel('${pid}')">🔄 重试本关</button>
+                <button class="pr-btn pr-btn-secondary" onclick="hidePassResult(); backToPassLevels()">📋 关卡列表</button>
+                <button class="pr-btn pr-btn-ghost" onclick="hidePassResult(); backToMenu()">🏠 返回菜单</button>
+            </div>`;
+        
+        const resultCard = document.getElementById('passResultCard');
+        const resultOverlay = document.getElementById('passResultOverlay');
+        if (resultCard && resultOverlay) {
+            resultCard.innerHTML = cardHTML;
+            resultOverlay.style.display = 'flex';
+        }
+    } else {
+        overlay.innerHTML = `
+            <div class="result-text lose">${reason}</div>
+            <div class="sub-info">🏆 消除${p.score}次</div>
+            <button onclick="this.parentElement.remove(); restartPlayer('${pid}')">🔄 再来一局</button>
+        `;
+        // 阻止overlay上的点击事件穿透到下层卡片
+        overlay.addEventListener('click', e => e.stopPropagation());
+        area.appendChild(overlay);
+    }
+    if (gameMode === 'dual') {
+        // 双人模式：一方失败，对方立即获胜
+        const otherPid = pid === 'p0' ? 'p1' : 'p0';
+        const otherPlayer = players[otherPid];
+        if (!otherPlayer.gameOver) {
+            const loserLabel = pid === 'p0' ? '🔴 红方' : '🔵 蓝方';
+            onWin(otherPlayer, otherPid);
+            // 修改对方的overlay标题为胜利信息
+            const otherArea = getCardArea(otherPid);
+            if (otherArea) {
+                const otherOverlay = otherArea.querySelector('.overlay');
+                if (otherOverlay) {
+                    const resultEl = otherOverlay.querySelector('.result-text');
+                    if (resultEl) {
+                        resultEl.textContent = '🎉 ' + (otherPid === 'p0' ? '🔴 红方' : '🔵 蓝方') + '获胜！';
+                        resultEl.className = 'result-text win';
+                    }
+                    // 更新sub-info显示对方失败原因
+                    const subEl = otherOverlay.querySelector('.sub-info');
+                    if (subEl) subEl.textContent = `${loserLabel}${reason}`;
+                }
+            }
+        }
+        checkDualGameEnd();
+    }
+}
+
+function checkDualGameEnd() {
+    const p0 = players['p0'], p1 = players['p1'];
+    if (p0.gameOver && p1.gameOver) {
+        let result = '', outcome;
+        if (p0.score > p1.score) { result = '🔴 红方获胜！'; outcome = 'win'; }
+        else if (p1.score > p0.score) { result = '🔵 蓝方获胜！'; outcome = 'lose'; }
+        else { result = '🤝 平局！'; outcome = 'draw'; }
+
+        // 记录双人模式结果
+        recordGameResult(outcome, result);
+
+        setTimeout(() => {
+            const w = document.getElementById('gameWrapper');
+            const existing = document.getElementById('dualResult');
+            if (existing) existing.remove();
+            const div = document.createElement('div');
+            div.id = 'dualResult';
+            div.style.cssText = 'text-align:center;font-size:1.3em;font-weight:900;color:#FFD700;margin-top:4px;text-shadow:0 0 12px rgba(255,215,0,.5)';
+            div.textContent = result;
+            w.appendChild(div);
+        }, 500);
+    }
+}
+
+// ============ 通关模式 ============
+function nextPassLevel(pid) {
+    passModeState.currentLevel++;
+    const p = players[pid]; if (!p) return;
+    stopPlayerTimer(p); clearIdleTimer(p); clearHint(p, pid); removeBubble(p);
+    p.gameOver = false; p.score = 0; p.slotCards = []; p.history = [];
+
+    const lvl = getPassLevelConfig(passModeState.currentLevel);
+    config = { types: lvl.types, layers: lvl.layers, cardsPerType: lvl.cardsPerType, name: lvl.name, timeLimit: lvl.timeLimit, slotMax: lvl.slotMax, itemCount: lvl.itemCount };
+    timedSeconds = lvl.timeLimit;
+
+    // 根据关卡难度动态设置道具次数
+    p.shuffleRemaining = lvl.itemCount || 5;
+    p.undoRemaining = lvl.itemCount || 5;
+    updateShuffleButton(pid);
+    updateUndoButton(pid);
+    pickRandomTheme(p);
+
+    const raw = generateCards(p);
+    p.cards = assignLayers(raw);
+
+    // 更新UI
+    const modeStr = gameMode === 'solo' ? '👤 单人' : '👥 双人';
+    const mt = document.getElementById('modeTag');
+    if (mt) mt.textContent = `${modeStr} · 🏰 通关(${passModeState.currentLevel}/${TOTAL_PASS_LEVELS}) · ${lvl.name}`;
+
+    const sd = getScoreDisplay(pid); if (sd) sd.textContent = '0';
+    const rd = getRemainDisplay(pid); if (rd) rd.textContent = '0';
+    const tt = getThemeTag(pid);
+    if (tt) { const t = THEMES[p._themeKey]; tt.textContent = t.icon + ' 主题：' + t.name; }
+    const gtt = document.getElementById('themeTag');
+    if (gtt) { const t = THEMES[p._themeKey]; gtt.textContent = t.icon + ' 主题：' + t.name; }
+    const sa = getSlotArea(pid); if (sa) sa.classList.remove('warning');
+    // 清除卡牌区域残留的卡片和overlay
+    const area = getCardArea(pid); if (area) area.querySelectorAll('.card,.overlay').forEach(el => el.remove());
+
+    renderCards(p, pid); renderSlots(p, pid);
+    startPlayerTimer(p, pid);
+    resetIdleTimer(p, pid);
+}
+
+function retryPassLevel(pid) {
+    const p = players[pid]; if (!p) return;
+    stopPlayerTimer(p); clearIdleTimer(p); clearHint(p, pid); removeBubble(p);
+    p.gameOver = false; p.score = 0; p.slotCards = []; p.history = [];
+
+    const lvl = getPassLevelConfig(passModeState.currentLevel);
+    config = { types: lvl.types, layers: lvl.layers, cardsPerType: lvl.cardsPerType, name: lvl.name, timeLimit: lvl.timeLimit, slotMax: lvl.slotMax, itemCount: lvl.itemCount };
+    timedSeconds = lvl.timeLimit;
+
+    // 根据关卡难度动态设置道具次数
+    p.shuffleRemaining = lvl.itemCount || 5;
+    p.undoRemaining = lvl.itemCount || 5;
+    updateShuffleButton(pid);
+    updateUndoButton(pid);
+    pickRandomTheme(p);
+
+    const raw = generateCards(p);
+    p.cards = assignLayers(raw);
+
+    const sd = getScoreDisplay(pid); if (sd) sd.textContent = '0';
+    const rd = getRemainDisplay(pid); if (rd) rd.textContent = '0';
+    const tt = getThemeTag(pid);
+    if (tt) { const t = THEMES[p._themeKey]; tt.textContent = t.icon + ' 主题：' + t.name; }
+    const gtt = document.getElementById('themeTag');
+    if (gtt) { const t = THEMES[p._themeKey]; gtt.textContent = t.icon + ' 主题：' + t.name; }
+    const sa = getSlotArea(pid); if (sa) sa.classList.remove('warning');
+    // 清除卡牌区域残留的卡片和overlay
+    const area = getCardArea(pid); if (area) area.querySelectorAll('.card,.overlay').forEach(el => el.remove());
+
+    renderCards(p, pid); renderSlots(p, pid);
+    startPlayerTimer(p, pid);
+    resetIdleTimer(p, pid);
+}
+
+function formatTotalTime(totalSec) {
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    return m > 0 ? `${m}分${s}秒` : `${s}秒`;
+}
+
+function restartPassMode() {
+    passModeState.currentLevel = 1;
+    startGame();
+}
+
+// ============ 通关关卡选择界面 ============
+let passLevelPage = 1;
+const PASS_LEVELS_PER_PAGE = 50; // 每页显示50关（10列×5行）
+
+// ============ 隐藏通关结果遮罩 ============
+function hidePassResult() {
+    const overlay = document.getElementById('passResultOverlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+        const card = document.getElementById('passResultCard');
+        if (card) card.innerHTML = '';
+    }
+}
+
+function backToPassLevels() {
+    // 隐藏通关结果遮罩（如果正在显示）
+    hidePassResult();
+    // 从游戏界面回到关卡选择
+    Object.entries(players).forEach(([pid, p]) => {
+        stopPlayerTimer(p);
+        clearIdleTimer(p);
+        clearHint(p, pid);
+        removeBubble(p);
+        // 清除卡牌区域的所有卡片和overlay，防止穿模残留
+        const area = getCardArea(pid);
+        if (area) area.querySelectorAll('.card,.overlay').forEach(el => el.remove());
+    });
+    document.getElementById('gameWrapper').classList.remove('active');
+    document.getElementById('screenPassLevels').classList.add('active');
+    currentScreen = 'screenPassLevels';
+    renderPassLevelGrid();
+}
+
+function passLevelGoToPage(action) {
+    const totalPages = Math.ceil(TOTAL_PASS_LEVELS / PASS_LEVELS_PER_PAGE);
+    switch(action) {
+        case 'first': passLevelPage = 1; break;
+        case 'prev': passLevelPage = Math.max(1, passLevelPage - 1); break;
+        case 'next': passLevelPage = Math.min(totalPages, passLevelPage + 1); break;
+        case 'last': passLevelPage = totalPages; break;
+    }
+    renderPassLevelGrid();
+}
+
+function startPassLevel(levelNum) {
+    // 从关卡选择开始某一关
+    passModeState.currentLevel = levelNum;
+    gameMode = 'solo';
+    timeMode = 'pass';
+    
+    // 切换到游戏界面
+    document.getElementById('screenPassLevels').classList.remove('active');
+    document.getElementById('gameWrapper').classList.add('active');
+    currentScreen = 'gameWrapper';
+    document.getElementById('soloPanel').style.display = '';
+    document.getElementById('dualPanels').innerHTML = '';
+    
+    startGame();
+}
+
+function renderPassLevelGrid() {
+    const grid = document.getElementById('passLevelGrid');
+    const pageInfo = document.getElementById('passPageInfo');
+    const sub = document.getElementById('passLevelSub');
+    const ptsDisplay = document.getElementById('passPointsDisplay');
+    if (!grid) return;
+    
+    const totalPages = Math.ceil(TOTAL_PASS_LEVELS / PASS_LEVELS_PER_PAGE);
+    pageInfo.textContent = `第${passLevelPage}页 / 共${totalPages}页`;
+    
+    const clearedCount = passModeState.clearedLevels.size;
+    sub.textContent = `已通关：${clearedCount} / ${TOTAL_PASS_LEVELS}`;
+    if (ptsDisplay) ptsDisplay.textContent = `🏆 通关积分：${passModePoints} | ⭐ 总分：${totalPoints}`;
+    
+    grid.innerHTML = '';
+    
+    const start = (passLevelPage - 1) * PASS_LEVELS_PER_PAGE + 1;
+    const end = Math.min(start + PASS_LEVELS_PER_PAGE - 1, TOTAL_PASS_LEVELS);
+    
+    for (let i = start; i <= end; i++) {
+        const item = document.createElement('div');
+        item.className = 'pass-level-item';
+        item.textContent = i;
+        
+        const isCleared = passModeState.clearedLevels.has(i);
+        const isNextUncleared = !isCleared && i === Math.min(...[...Array(TOTAL_PASS_LEVELS).keys()].map(k => k + 1).filter(l => !passModeState.clearedLevels.has(l)));
+        
+        if (isCleared) {
+            item.classList.add('cleared');
+            item.onclick = () => startPassLevel(i);
+        } else if (isNextUncleared || passModeState.clearedLevels.has(i - 1) || i === 1) {
+            // 下一个可挑战的关卡：已通关前一关 或 第1关
+            if (!isNextUncleared && i !== 1) {
+                // 检查前面是否全部通关
+                let allPrevCleared = true;
+                for (let j = 1; j < i; j++) {
+                    if (!passModeState.clearedLevels.has(j)) { allPrevCleared = false; break; }
+                }
+                if (!allPrevCleared) {
+                    item.classList.add('locked');
+                    grid.appendChild(item);
+                    continue;
+                }
+            }
+            // 可挑战
+            item.onclick = () => startPassLevel(i);
+            if (i === passModeState.currentLevel || isNextUncleared) {
+                item.classList.add('current');
+            }
+        } else {
+            item.classList.add('locked');
+        }
+        
+        grid.appendChild(item);
+    }
+    
+    // 滚动到当前页顶部
+    grid.scrollTop = 0;
+}
+
+function startGame() {
+    if (timeMode === 'pass') {
+        // 通关模式：使用当前关卡配置
+        const lvl = getPassLevelConfig(passModeState.currentLevel);
+        config = { types: lvl.types, layers: lvl.layers, cardsPerType: lvl.cardsPerType, name: lvl.name, timeLimit: lvl.timeLimit, slotMax: lvl.slotMax, itemCount: lvl.itemCount };
+        timedSeconds = lvl.timeLimit;
+    } else {
+        config = DIFFICULTY[currentDifficulty];
+        timedSeconds = config.timeLimit;
+    }
+
+    // 更新模式标签
+    const modeStr = gameMode === 'solo' ? '👤 单人' : '👥 双人';
+    let timeLabel, diffStr;
+    if (timeMode === 'pass') {
+        timeLabel = `🏰 通关(${passModeState.currentLevel}/${TOTAL_PASS_LEVELS})`;
+        const lvlCfg = getPassLevelConfig(passModeState.currentLevel);
+        diffStr = lvlCfg.name;
+    } else {
+        const timeStr = timeMode === 'free' ? '⏳ 不限时' : '⏱ 限时';
+        diffStr = config.name;
+        timeLabel = timeStr;
+        if (timeMode === 'timed') {
+            const m = Math.floor(timedSeconds / 60);
+            const s = timedSeconds % 60;
+            timeLabel = `⏱ 限时(${m}分${s > 0 ? s + '秒' : ''})`;
+        }
+    }
+    const mt = document.getElementById('modeTag');
+    if (mt) mt.textContent = `${modeStr} · ${timeLabel} · ${diffStr}`;
+
+    if (gameMode === 'solo') {
+        // 隐藏双人面板，显示单人面板
+        document.getElementById('dualPanels').innerHTML = '';
+        document.getElementById('soloPanel').style.display = '';
+
+        const p = players['p0'];
+        stopPlayerTimer(p); clearIdleTimer(p); clearHint(p, 'p0'); removeBubble(p);
+        p.gameOver = false; p.score = 0; p.slotCards = []; p.history = [];
+        p.shuffleRemaining = (timeMode === 'pass' && config.itemCount !== undefined) ? config.itemCount : 5;
+        p.undoRemaining = (timeMode === 'pass' && config.itemCount !== undefined) ? config.itemCount : 5;
+        updateShuffleButton('p0');
+        updateUndoButton('p0');
+        pickRandomTheme(p);
+        const raw = generateCards(p);
+        p.cards = assignLayers(raw);
+        const sd = getScoreDisplay('p0'); if (sd) sd.textContent = '0';
+        const rd = getRemainDisplay('p0'); if (rd) rd.textContent = '0';
+        const tt = getThemeTag('p0');
+        if (tt) { const t = THEMES[p._themeKey]; tt.textContent = t.icon + ' 主题：' + t.name; }
+        const sa = getSlotArea('p0'); if (sa) sa.classList.remove('warning');
+        const area = getCardArea('p0'); if (area) area.querySelectorAll('.card,.overlay').forEach(el => el.remove());
+        // 更新全局主题标签
+        const gtt = document.getElementById('themeTag');
+        if (gtt) { const t = THEMES[p._themeKey]; gtt.textContent = t.icon + ' 主题：' + t.name; }
+        renderCards(p, 'p0'); renderSlots(p, 'p0');
+        startPlayerTimer(p, 'p0');
+        resetIdleTimer(p, 'p0');
+    } else {
+        // 双人模式
+        document.getElementById('soloPanel').style.display = 'none';
+        const existing = document.getElementById('dualResult');
+        if (existing) existing.remove();
+        if (!players['p1']) players['p1'] = createPlayerState();
+        buildDualPanels();
+
+        ['p0', 'p1'].forEach(pid => {
+            const p = players[pid];
+            stopPlayerTimer(p); clearIdleTimer(p); clearHint(p, pid); removeBubble(p);
+            p.gameOver = false; p.score = 0; p.slotCards = []; p.history = [];
+            p.shuffleRemaining = 5;
+            p.undoRemaining = 5;
+            // 同步当前玩家的图标大小到滑块
+            const slider = document.querySelector('#sizeControl-' + pid + ' input[type=range]');
+            if (slider) slider.value = p.iconSize || 52;
+            const sv = document.getElementById('sizeVal-' + pid);
+            if (sv) sv.textContent = (p.iconSize || 52) + 'px';
+            updateShuffleButton(pid);
+            updateUndoButton(pid);
+            pickRandomTheme(p);
+            const raw = generateCards(p);
+            p.cards = assignLayers(raw);
+            const sd = getScoreDisplay(pid); if (sd) sd.textContent = '0';
+            const rd = getRemainDisplay(pid); if (rd) rd.textContent = '0';
+            const tt = getThemeTag(pid);
+            if (tt) { const t = THEMES[p._themeKey]; tt.textContent = t.icon + ' 主题：' + t.name; }
+            const sa = getSlotArea(pid); if (sa) sa.classList.remove('warning');
+            const area = getCardArea(pid); if (area) area.querySelectorAll('.card,.overlay').forEach(el => el.remove());
+            renderCards(p, pid); renderSlots(p, pid);
+            startPlayerTimer(p, pid);
+            resetIdleTimer(p, pid);
+        });
+    }
+}
+
+// ============ 重新开始 ============
+function restartPlayer(pid) {
+    const p = players[pid];
+    if (!p) return;
+    stopPlayerTimer(p); clearIdleTimer(p); clearHint(p, pid); removeBubble(p);
+    p.gameOver = false; p.score = 0; p.slotCards = []; p.history = [];
+    p.shuffleRemaining = (timeMode === 'pass' && config.itemCount !== undefined) ? config.itemCount : 5;
+    p.undoRemaining = (timeMode === 'pass' && config.itemCount !== undefined) ? config.itemCount : 5;
+    updateShuffleButton(pid);
+    updateUndoButton(pid);
+    pickRandomTheme(p);
+    const raw = generateCards(p);
+    p.cards = assignLayers(raw);
+    const sd = getScoreDisplay(pid); if (sd) sd.textContent = '0';
+    const rd = getRemainDisplay(pid); if (rd) rd.textContent = '0';
+    const tt = getThemeTag(pid);
+    if (tt) { const t = THEMES[p._themeKey]; tt.textContent = t.icon + ' 主题：' + t.name; }
+    const sa = getSlotArea(pid); if (sa) sa.classList.remove('warning');
+    const area = getCardArea(pid); if (area) area.querySelectorAll('.card,.overlay').forEach(el => el.remove());
+    renderCards(p, pid); renderSlots(p, pid);
+    startPlayerTimer(p, pid);
+    resetIdleTimer(p, pid);
+}
+
+function restartCurrentGame() {
+    if (timeMode === 'pass') {
+        retryPassLevel('p0');
+    } else {
+        startGame();
+    }
+}
+
+// ============ 全局事件 ============
+let resizeTimeout;
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        if (currentScreen === 'gameWrapper') {
+            Object.entries(players).forEach(([pid, p]) => { if (!p.gameOver) renderCards(p, pid); });
+        }
+    }, 200);
+});
+
+document.addEventListener('click', e => {
+    // 菜单按钮音效
+    if (e.target.closest('.menu-card') || e.target.closest('.back-btn') || e.target.closest('.btn')) {
+        playSfx('menu');
+    }
+    if (!e.target.closest('.overlay') && currentScreen === 'gameWrapper') {
+        Object.entries(players).forEach(([pid, p]) => {
+            if (!p.gameOver) resetIdleTimer(p, pid);
+        });
+    }
+});
+
+// ============ 初始化 ============
+players['p0']._themeKey = 'animals';
+players['p0']._emojis = THEMES['animals'].emojis;
+applyThemeBackground('animals');
+
+// ============ 默认BGM：提取前60秒无缝循环 ============
+const DEFAULT_BGM = null; // 在此粘贴你的 base64 data URI: "data:audio/mpeg;base64,..."
+
+let defaultBgmBuffer = null;   // 解码后的 AudioBuffer（前60秒）
+let defaultBgmSource = null;  // 当前播放的 BufferSource
+
+// 从 AudioBuffer 截取前 maxSec 秒
+function sliceAudioBuffer(buffer, maxSec) {
+    const sampleRate = buffer.sampleRate;
+    const channels = buffer.numberOfChannels;
+    const totalSamples = Math.min(buffer.length, Math.floor(maxSec * sampleRate));
+    const sliced = audioCtx.createBuffer(channels, totalSamples, sampleRate);
+    for (let ch = 0; ch < channels; ch++) {
+        const srcData = buffer.getChannelData(ch);
+        const dstData = sliced.getChannelData(ch);
+        dstData.set(srcData.subarray(0, totalSamples));
+    }
+    return sliced;
+}
+
+// 无缝循环播放 AudioBuffer
+function playLoopedBuffer(buffer) {
+    if (!audioCtx || !musicPlaying) return;
+    stopLoopedBuffer();
+    
+    function schedule(offset = 0) {
+        if (!musicPlaying || !audioCtx) return;
+        const src = audioCtx.createBufferSource();
+        src.buffer = buffer;
+        src.loop = true;
+        src.loopStart = 0;
+        src.loopEnd = buffer.duration;
+        src.connect(musicGain);
+        src.start(audioCtx.currentTime, offset % buffer.duration);
+        defaultBgmSource = src;
+        usingCustomMusic = true;
+    }
+    schedule(0);
+}
+
+function stopLoopedBuffer() {
+    if (defaultBgmSource) {
+        try { defaultBgmSource.stop(); } catch(e){}
+        defaultBgmSource = null;
+    }
+}
+
+// 从 Base64 data URI 解码并启动循环BGM
+async function initDefaultBGM() {
+    if (!DEFAULT_BGM) {
+        // 没有默认BGM，使用内置旋律
+        setTimeout(() => { initAudio(); startMusic(); }, 500);
+        return;
+    }
+    
+    initAudio();
+    try {
+        const resp = await fetch(DEFAULT_BGM);
+        const arrayBuffer = await resp.arrayBuffer();
+        const fullBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+        // 截取前60秒
+        defaultBgmBuffer = sliceAudioBuffer(fullBuffer, 60);
+        // 首次用户交互后播放
+        const tryPlay = () => {
+            musicPlaying = true;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            playLoopedBuffer(defaultBgmBuffer);
+            updateMusicButton();
+            updateCustomMusicButton();
+            if (!musicPlaying) {
+                document.addEventListener('click', tryPlay, { once: true });
+            }
+        };
+        document.addEventListener('click', tryPlay, { once: true });
+        // 也尝试直接播放
+        musicPlaying = true;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        playLoopedBuffer(defaultBgmBuffer);
+        updateMusicButton();
+        updateCustomMusicButton();
+    } catch(e) {
+        console.log('默认BGM加载失败，使用内置旋律:', e);
+        startMusic();
+    }
+}
+
+// 启动初始化
+setTimeout(initDefaultBGM, 300);
+// 初始化总分显示
+updatePointsDisplay();
+</script>
+</body>
+</html>
